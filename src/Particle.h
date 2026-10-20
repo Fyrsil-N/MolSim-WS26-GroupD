@@ -51,7 +51,7 @@ class Particle {
   Particle(
       // for visualization, we need always 3 coordinates
       // -> in case of 2d, we use only the first and the second
-      std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg, int type = 0);
+      const std::array<double, 3> &x_arg, const std::array<double, 3> &v_arg, double m_arg, int type = 0);
 
   virtual ~Particle();
 
@@ -66,6 +66,16 @@ class Particle {
   double getM() const;
 
   int getType() const;
+
+  void setX(const std::array<double, 3> &x);
+
+  void setV(const std::array<double, 3> &v);
+
+  void setF(const std::array<double, 3> &f);
+
+  void setOldF(const std::array<double, 3> &old_f);
+
+  void updateF(const std::array<double, 3> &new_f);
 
   bool operator==(Particle &other);
 

@@ -3,6 +3,7 @@
 #include <list>
 
 #include "FileReader.h"
+#include "outputWriter/VTKWriter.h"
 #include "outputWriter/XYZWriter.h"
 #include "utils/ArrayUtils.h"
 
@@ -35,15 +36,16 @@ constexpr double delta_t = 0.014;
 // TODO: what data structure to pick?
 std::list<Particle> particles;
 
+// TODO: get some proper parameter passing and validation going and also add a help message
 int main(int argc, char *argsv[]) {
-  std::cout << "Hello from MolSim for PSE!" << std::endl;
+  std::cout << "Hello from MolSim for PSE!" << '\n';
   if (argc != 2) {
-    std::cout << "Erroneous programme call! " << std::endl;
-    std::cout << "./molsym filename" << std::endl;
+    std::cout << "Erroneous programme call! " << '\n';
+    std::cout << "./molsym filename" << '\n';
   }
 
-  FileReader fileReader;
-  fileReader.readFile(particles, argsv[1]);
+  FileReader file_reader;
+  file_reader.readFile(particles, argsv[1]);
 
   double current_time = start_time;
 
@@ -62,41 +64,52 @@ int main(int argc, char *argsv[]) {
     if (iteration % 10 == 0) {
       plotParticles(iteration);
     }
-    std::cout << "Iteration " << iteration << " finished." << std::endl;
+    std::cout << "Iteration " << iteration << " finished." << '\n';
 
     current_time += delta_t;
   }
 
-  std::cout << "output written. Terminating..." << std::endl;
+  std::cout << "output written. Terminating..." << '\n';
   return 0;
 }
 
 void calculateF() {
-  std::list<Particle>::iterator iterator;
-  iterator = particles.begin();
-
   for (auto &p1 : particles) {
+    std::array<double, 3> force_i{};
     for (auto &p2 : particles) {
-      // @TODO: insert calculation of forces here!
+      if (p1 == p2) {
+        continue;
+      }
+      const auto diff = p2.getX() - p1.getX();
+      const double dist = ArrayUtils::L2Norm(diff);
+      force_i = force_i + (p1.getM() * p2.getM() / (dist * dist * dist)) * diff;
     }
+    p1.updateF(force_i);
   }
 }
 
 void calculateX() {
   for (auto &p : particles) {
-    // @TODO: insert calculation of position updates here!
+    auto delta_x = delta_t * p.getV() + delta_t * delta_t / (2 * p.getM()) * p.getOldF();
+    p.setX(p.getX() + delta_x);
   }
 }
 
 void calculateV() {
   for (auto &p : particles) {
-    // @TODO: insert calculation of veclocity updates here!
+    auto delta_v = delta_t / (2 * p.getM()) * (p.getOldF() + p.getF());
+    p.setV(p.getV() + delta_v);
   }
 }
 
+// TODO change the vtk::plotparticle to a pass by reference
 void plotParticles(int iteration) {
   std::string out_name("MD_vtk");
 
+#ifdef ENABLE_VTK_OUTPUT
+  outputWriter::VTKWriter writer;
+#else
   outputWriter::XYZWriter writer;
+#endif
   writer.plotParticles(particles, out_name, iteration);
 }
