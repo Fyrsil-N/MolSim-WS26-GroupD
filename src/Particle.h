@@ -10,6 +10,7 @@
 #include <array>
 #include <string>
 
+//@TODO document this with doxygen
 class Particle {
  private:
   /**
@@ -47,6 +48,15 @@ class Particle {
   explicit Particle(int type = 0);
 
   Particle(const Particle &other);
+
+  /**
+   * Move constructor to avoid copies when reallocating in a larger data structure.
+   */
+  Particle(Particle &&other) noexcept = default;
+
+  Particle &operator=(const Particle &other) = default;
+
+  Particle &operator=(Particle &&other) noexcept = default;
 
   Particle(
       // for visualization, we need always 3 coordinates

@@ -3,6 +3,7 @@
 #include <list>
 
 #include "FileReader.h"
+#include "ParticleContainer.h"
 #include "outputWriter/VTKWriter.h"
 #include "outputWriter/XYZWriter.h"
 #include "utils/ArrayUtils.h"
@@ -33,8 +34,7 @@ constexpr double start_time = 0;
 constexpr double end_time = 1000;
 constexpr double delta_t = 0.014;
 
-// TODO: what data structure to pick?
-std::list<Particle> particles;
+ParticleContainer particles{};
 
 // TODO: get some proper parameter passing and validation going and also add a help message
 int main(int argc, char *argsv[]) {
@@ -73,6 +73,7 @@ int main(int argc, char *argsv[]) {
   return 0;
 }
 
+// @TODO here we can make use of the pairwise iteration later
 void calculateF() {
   for (auto &p1 : particles) {
     std::array<double, 3> force_i{};
@@ -90,7 +91,7 @@ void calculateF() {
 
 void calculateX() {
   for (auto &p : particles) {
-    auto delta_x = delta_t * p.getV() + delta_t * delta_t / (2 * p.getM()) * p.getOldF();
+    auto delta_x = delta_t * p.getV() + delta_t * delta_t / (2 * p.getM()) * p.getF();
     p.setX(p.getX() + delta_x);
   }
 }

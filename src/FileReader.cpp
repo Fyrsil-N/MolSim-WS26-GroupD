@@ -12,11 +12,13 @@
 #include <iostream>
 #include <sstream>
 
+#include "ParticleContainer.h"
+
 FileReader::FileReader() = default;
 
 FileReader::~FileReader() = default;
 
-void FileReader::readFile(std::list<Particle> &particles, char *filename) {
+void FileReader::readFile(ParticleContainer &particles, char *filename) {
   std::array<double, 3> x;
   std::array<double, 3> v;
   double m;
@@ -40,6 +42,7 @@ void FileReader::readFile(std::list<Particle> &particles, char *filename) {
     getline(input_file, tmp_string);
     std::cout << "Read line: " << tmp_string << std::endl;
 
+    // @TODO here we can use the ParticleContainer::reserve maybe
     for (int i = 0; i < num_particles; i++) {
       std::istringstream datastream(tmp_string);
 
