@@ -5,12 +5,12 @@
  *      Author: eckhardw
  */
 
-#include "outputWriter/XYZWriter.h"
+#include "io/output/XYZWriter.h"
 
 #include <iomanip>
 #include <sstream>
 
-namespace outputWriter {
+namespace io {
 
 XYZWriter::XYZWriter() = default;
 
@@ -42,4 +42,4 @@ void XYZWriter::plotParticles(ParticleContainer &particles, const std::string &f
   file.close();
 }
 
-}  // namespace outputWriter
+}  // namespace io

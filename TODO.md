@@ -12,11 +12,21 @@ ___
 
 ## Bugs
 
-* passing no input file breaks the program right now by passing a null reference
+---
+
+## Features
+
+* optimize the force calculation (two particles acting on each other have the same force so we dont need to calculate it
+  twice)
 
 ---
 
 ## Assignment1
 
 * add the doxygen make target
-* add the vtk support
+* add the binary vtk support
+* task 4 everything
+    * would be cool to visualize the size of the particles due to their mass?
+* presentation
+* group simulation things into a simulator class
+* maybe add an interface to plug in different forces in the simulator

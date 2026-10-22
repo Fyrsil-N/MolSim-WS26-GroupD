@@ -8,12 +8,10 @@
 #pragma once
 
 #include <fstream>
-#include <list>
 
-#include "Particle.h"
 #include "ParticleContainer.h"
 
-namespace outputWriter {
+namespace io {
 
 class XYZWriter {
  public:
@@ -24,4 +22,4 @@ class XYZWriter {
   void plotParticles(ParticleContainer &particles, const std::string &filename, int iteration);
 };
 
-}  // namespace outputWriter
+}  // namespace io

@@ -5,7 +5,7 @@
  *      Author: eckhardw
  */
 #ifdef ENABLE_VTK_OUTPUT
-#include "VTKWriter.h"
+#include "io/output/VTKWriter.h"
 
 #include <vtkCellArray.h>
 #include <vtkDoubleArray.h>
@@ -19,7 +19,7 @@
 
 #include "ParticleContainer.h"
 
-namespace outputWriter {
+namespace io {
 
 void VTKWriter::plotParticles(ParticleContainer &particles, const std::string &filename, int iteration) {
   // Initialize points
@@ -73,5 +73,5 @@ void VTKWriter::plotParticles(ParticleContainer &particles, const std::string &f
   // Write the file
   writer->Write();
 }
-}  // namespace outputWriter
+}  // namespace io
 #endif

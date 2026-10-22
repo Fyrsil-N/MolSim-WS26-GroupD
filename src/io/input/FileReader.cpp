@@ -5,7 +5,7 @@
  *      Author: eckhardw
  */
 
-#include "FileReader.h"
+#include "io/input/FileReader.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -13,6 +13,8 @@
 #include <sstream>
 
 #include "ParticleContainer.h"
+
+namespace io {
 
 FileReader::FileReader() = default;
 
@@ -67,3 +69,5 @@ void FileReader::readFile(ParticleContainer &particles, char *filename) {
     exit(-1);
   }
 }
+
+}  // namespace io

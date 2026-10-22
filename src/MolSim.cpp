@@ -1,11 +1,12 @@
 
+#include <cstdlib>
 #include <iostream>
-#include <list>
 
-#include "FileReader.h"
 #include "ParticleContainer.h"
-#include "outputWriter/VTKWriter.h"
-#include "outputWriter/XYZWriter.h"
+#include "cli/CommandLineInterface.h"
+#include "io/input/FileReader.h"
+#include "io/output/VTKWriter.h"
+#include "io/output/XYZWriter.h"
 #include "utils/ArrayUtils.h"
 
 /**** forward declaration of the calculation functions ****/
@@ -18,59 +19,55 @@ void calculateF();
 /**
  * calculate the position for all particles
  */
-void calculateX();
+void calculateX(double delta_t);
 
 /**
- * calculate the position for all particles
+ * calculate the velocity for all particles
  */
-void calculateV();
+void calculateV(double delta_t);
 
 /**
- * plot the particles to a xyz-file
+ * plot the particles to a xyz-file or a vtk file if the cmake flag is set
  */
 void plotParticles(int iteration);
 
-constexpr double start_time = 0;
-constexpr double end_time = 1000;
-constexpr double delta_t = 0.014;
-
 ParticleContainer particles{};
 
-// TODO: get some proper parameter passing and validation going and also add a help message
-int main(int argc, char *argsv[]) {
+int main(int argc, char *argv[]) {
   std::cout << "Hello from MolSim for PSE!" << '\n';
-  if (argc != 2) {
-    std::cout << "Erroneous programme call! " << '\n';
-    std::cout << "./molsym filename" << '\n';
+
+  auto params = cli::parseArguments(argc, argv);
+  if (!params) {
+    return EXIT_FAILURE;
   }
 
-  FileReader file_reader;
-  file_reader.readFile(particles, argsv[1]);
+  io::FileReader file_reader;
+  file_reader.readFile(particles, params->input_file.data());
 
-  double current_time = start_time;
+  double current_time = 0;
 
   int iteration = 0;
 
   // for this loop, we assume: current x, current f and current v are known
-  while (current_time < end_time) {
+  while (current_time < params->t_end) {
     // calculate new x
-    calculateX();
+    calculateX(params->delta_t);
     // calculate new f
     calculateF();
     // calculate new v
-    calculateV();
+    calculateV(params->delta_t);
 
     iteration++;
-    if (iteration % 10 == 0) {
+    if (iteration % params->output_interval == 0) {
       plotParticles(iteration);
     }
     std::cout << "Iteration " << iteration << " finished." << '\n';
 
-    current_time += delta_t;
+    current_time += params->delta_t;
   }
 
   std::cout << "output written. Terminating..." << '\n';
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // @TODO here we can make use of the pairwise iteration later
@@ -89,28 +86,27 @@ void calculateF() {
   }
 }
 
-void calculateX() {
+void calculateX(double delta_t) {
   for (auto &p : particles) {
     auto delta_x = delta_t * p.getV() + delta_t * delta_t / (2 * p.getM()) * p.getF();
     p.setX(p.getX() + delta_x);
   }
 }
 
-void calculateV() {
+void calculateV(double delta_t) {
   for (auto &p : particles) {
     auto delta_v = delta_t / (2 * p.getM()) * (p.getOldF() + p.getF());
     p.setV(p.getV() + delta_v);
   }
 }
 
-// TODO change the vtk::plotparticle to a pass by reference
 void plotParticles(int iteration) {
   std::string out_name("MD_vtk");
 
 #ifdef ENABLE_VTK_OUTPUT
-  outputWriter::VTKWriter writer;
+  io::VTKWriter writer;
 #else
-  outputWriter::XYZWriter writer;
+  io::XYZWriter writer;
 #endif
   writer.plotParticles(particles, out_name, iteration);
 }

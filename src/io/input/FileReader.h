@@ -7,10 +7,9 @@
 
 #pragma once
 
-#include <list>
-
-#include "Particle.h"
 #include "ParticleContainer.h"
+
+namespace io {
 
 class FileReader {
  public:
@@ -19,3 +18,5 @@ class FileReader {
 
   void readFile(ParticleContainer &particles, char *filename);
 };
+
+}  // namespace io

@@ -42,4 +42,15 @@ Run the final executable inside `build/` to keep the repo clean and all output f
 
 ```bash
 ./MolSim ../input/eingabe-sonne.txt
+./MolSim -d 0.014 -e 1000 ../input/eingabe-sonne.txt
+```
+
+```
+Usage: ./MolSim [options] <input_file>
+
+Options:
+  -d, --delta-t <double>         time step size (default: 0.014)
+  -e, --t-end <double>           end time (default: 1000)
+  -o, --output-interval <int>    output is written every N iterations (default: 10)
+  -h, --help                     print this help and exit
 ```

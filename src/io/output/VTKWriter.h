@@ -11,13 +11,11 @@
 #include <vtkSmartPointer.h>
 #include <vtkUnstructuredGrid.h>
 
-#include <list>
 #include <string>
 
-#include "Particle.h"
 #include "ParticleContainer.h"
 
-namespace outputWriter {
+namespace io {
 
 /**
  * This class implements the functionality to generate vtk output from
@@ -41,5 +39,5 @@ class VTKWriter {
   void plotParticles(ParticleContainer &particles, const std::string &filename, int iteration);
 };
 
-}  // namespace outputWriter
+}  // namespace io
 #endif
