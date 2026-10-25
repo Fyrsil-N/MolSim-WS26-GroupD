@@ -10,7 +10,6 @@
 #include <array>
 #include <string>
 
-//@TODO document this with doxygen
 class Particle {
  private:
   /**
@@ -45,8 +44,16 @@ class Particle {
   int type;
 
  public:
+  /**
+   * Default Constructor to create a particle with all members = 0
+   * @param type field to distinguish between different particle types
+   */
   explicit Particle(int type = 0);
 
+  /**
+   * Copy constructor
+   * @param other Reference to the particle to be copied
+   */
   Particle(const Particle &other);
 
   /**
@@ -58,6 +65,13 @@ class Particle {
 
   Particle &operator=(Particle &&other) noexcept = default;
 
+  /**
+   * Constructor of the particle class.
+   * @param x_arg initial (x, y, z) position of the particle
+   * @param v_arg initial velocity in 3D space
+   * @param m_arg weight of the particle
+   * @param type field to distinguish between different particle types
+   */
   Particle(
       // for visualization, we need always 3 coordinates
       // -> in case of 2d, we use only the first and the second
@@ -85,8 +99,22 @@ class Particle {
 
   void setOldF(const std::array<double, 3> &old_f);
 
-  void updateF(const std::array<double, 3> &new_f);
+  /**
+   * Applies a new force to the particle, adding it to the current f
+   * @param delta_f new force acting on the particle
+   */
+  void addToF(const std::array<double, 3> &delta_f);
 
+  /**
+   * move f into old_f and start a new force calculation step with f = {0.0, 0.0, 0.0}
+   */
+  void resetF();
+
+  /**
+   * Compares two particles for equality based on the value of their members NOT actual identity.
+   * @param other other particle to compare to
+   * @return True if two particles are equal in all members
+   */
   bool operator==(Particle &other);
 
   std::string toString() const;

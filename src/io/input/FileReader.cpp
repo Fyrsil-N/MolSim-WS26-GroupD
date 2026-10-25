@@ -11,22 +11,21 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 #include "ParticleContainer.h"
 
 namespace io {
 
-FileReader::FileReader() = default;
+FileReader::FileReader(std::string filename) : input_filename(std::move(filename)) {}
 
-FileReader::~FileReader() = default;
-
-void FileReader::readFile(ParticleContainer &particles, char *filename) {
-  std::array<double, 3> x;
-  std::array<double, 3> v;
-  double m;
+void FileReader::readInParticles(ParticleContainer &particles) {
+  std::array<double, 3> x{};
+  std::array<double, 3> v{};
+  double m{};
   int num_particles = 0;
 
-  std::ifstream input_file(filename);
+  std::ifstream input_file(input_filename);
   std::string tmp_string;
 
   if (input_file.is_open()) {
@@ -44,7 +43,11 @@ void FileReader::readFile(ParticleContainer &particles, char *filename) {
     getline(input_file, tmp_string);
     std::cout << "Read line: " << tmp_string << std::endl;
 
-    // @TODO here we can use the ParticleContainer::reserve maybe
+    // reserve the space needed before hand to reduce moves of the ParticleContainer
+    if (num_particles > 0) {
+      particles.reserve(particles.size() + num_particles);
+    }
+
     for (int i = 0; i < num_particles; i++) {
       std::istringstream datastream(tmp_string);
 
@@ -65,7 +68,7 @@ void FileReader::readFile(ParticleContainer &particles, char *filename) {
       std::cout << "Read line: " << tmp_string << std::endl;
     }
   } else {
-    std::cout << "Error: could not open file " << filename << std::endl;
+    std::cout << "Error: could not open file " << input_filename << std::endl;
     exit(-1);
   }
 }

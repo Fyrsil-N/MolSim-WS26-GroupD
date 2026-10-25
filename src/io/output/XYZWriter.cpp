@@ -7,19 +7,23 @@
 
 #include "io/output/XYZWriter.h"
 
+#include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 namespace io {
 
-XYZWriter::XYZWriter() = default;
+XYZWriter::XYZWriter(int output_interval_arg, std::string filename)
+    : OutputWriter(output_interval_arg), output_filename(std::move(filename)) {}
 
-XYZWriter::~XYZWriter() = default;
-
-void XYZWriter::plotParticles(ParticleContainer &particles, const std::string &filename, int iteration) {
+void XYZWriter::onStep(const ParticleContainer &particles, int iteration, double time [[maybe_unused]]) {
+  if (iteration % output_interval != 0) {
+    return;
+  }
   std::ofstream file;
   std::stringstream strstr;
-  strstr << filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".xyz";
+  strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".xyz";
 
   file.open(strstr.str().c_str());
   file << particles.size() << std::endl;

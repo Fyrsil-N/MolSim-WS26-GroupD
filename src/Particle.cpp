@@ -47,10 +47,12 @@ void Particle::setF(const std::array<double, 3> &f_arg) { f = f_arg; }
 
 void Particle::setOldF(const std::array<double, 3> &old_f_arg) { old_f = old_f_arg; }
 
-void Particle::updateF(const std::array<double, 3> &new_f) {
-  setOldF(f);
-  setF(new_f);
+void Particle::resetF() {
+  old_f = f;
+  f = std::array<double, 3>{0., 0., 0.};
 }
+
+void Particle::addToF(const std::array<double, 3> &delta_f) { f = f + delta_f; }
 
 std::string Particle::toString() const {
   std::stringstream stream;

@@ -6,7 +6,7 @@
 #include <string>
 
 /**
- * Parameters for a simulation run set via the CLI
+ * Parameters for a simulation run
  */
 struct SimulationParameters {
   /**

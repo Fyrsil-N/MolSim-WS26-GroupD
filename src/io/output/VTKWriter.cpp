@@ -21,7 +21,13 @@
 
 namespace io {
 
-void VTKWriter::plotParticles(ParticleContainer &particles, const std::string &filename, int iteration) {
+VTKWriter::VTKWriter(int output_interval_arg, std::string filename)
+    : OutputWriter(output_interval_arg), output_filename(std::move(filename)) {}
+
+void VTKWriter::onStep(const ParticleContainer &particles, int iteration, double time [[maybe_unused]]) {
+  if (iteration % output_interval != 0) {
+    return;
+  }
   // Initialize points
   auto points = vtkSmartPointer<vtkPoints>::New();
 
@@ -62,7 +68,7 @@ void VTKWriter::plotParticles(ParticleContainer &particles, const std::string &f
 
   // Create filename with iteration number
   std::stringstream strstr;
-  strstr << filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".vtu";
+  strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".vtu";
 
   // Create writer and set data
   vtkNew<vtkXMLUnstructuredGridWriter> writer;

@@ -6,7 +6,7 @@
 
 #include <optional>
 
-#include "cli/SimulationParameters.h"
+#include "SimulationParameters.h"
 
 namespace cli {
 /**

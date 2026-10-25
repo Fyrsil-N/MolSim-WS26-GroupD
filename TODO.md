@@ -2,11 +2,9 @@
 
 ## Documentation
 
-* add a clear statement to the readme which compiler and c++ version are being used
 * list prerequisites and dependencies somewhere
 * fill out the architecture subheading
 * (starting from task 2) add documentation on how to use the ctest as well
-* cleanly document command line arguments in help and in the readme
 
 ___
 
@@ -16,8 +14,10 @@ ___
 
 ## Features
 
-* optimize the force calculation (two particles acting on each other have the same force so we dont need to calculate it
-  twice)
+* maintain the vtk reader inside of the class dont regen it every time
+* maybe add a runtime selection between vtk,xyz and other writers.
+* deduplicate the interval checking by having it sit in outputWriter and then calling the actual private virtual write
+  function.
 
 ---
 
@@ -28,5 +28,4 @@ ___
 * task 4 everything
     * would be cool to visualize the size of the particles due to their mass?
 * presentation
-* group simulation things into a simulator class
-* maybe add an interface to plug in different forces in the simulator
+* group the input methods behind an input reader interface

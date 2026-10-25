@@ -13,6 +13,7 @@
 
 #include <string>
 
+#include "OutputWriter.h"
 #include "ParticleContainer.h"
 
 namespace io {
@@ -21,10 +22,20 @@ namespace io {
  * This class implements the functionality to generate vtk output from
  * particles using the official VTK library.
  */
-class VTKWriter {
+class VTKWriter : public OutputWriter {
+ private:
+  /**
+   * Output filenames are of the form output_filename_<current_iteration>.vtu
+   */
+  std::string output_filename;
+
  public:
-  VTKWriter() = default;
-  ~VTKWriter() = default;
+  /**
+   * Constructor for the VTK Writer
+   * @param output_interval Output is written every output_interval iterations
+   * @param filename Prefix of all output files
+   */
+  VTKWriter(int output_interval, std::string filename);
 
   // Delete copy constructor and assignment operator
   VTKWriter(const VTKWriter &) = delete;
@@ -33,10 +44,10 @@ class VTKWriter {
   /**
    * Write VTK output of particles.
    * @param particles Particles to add to the output
-   * @param filename Output filename
    * @param iteration Current iteration number
+   * @param time Current in-simulation time
    */
-  void plotParticles(ParticleContainer &particles, const std::string &filename, int iteration);
+  void onStep(const ParticleContainer &particles, int iteration, double time) override;
 };
 
 }  // namespace io

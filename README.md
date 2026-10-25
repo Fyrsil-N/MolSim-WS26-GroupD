@@ -14,7 +14,7 @@ Builds are stored out-of-source in a gitignored `build/` folder.
 Configure and build with the following commands (from the project root):
 
 ```bash
-cmake -S . -B build # configure (rerun whenever a new file is added to include it in the build)
+CC=clang CXX=clang++ cmake -S . -B build # configure (rerun whenever a new file is added to include it in the build)
 cd build 
 make -j # compile the project
 ```

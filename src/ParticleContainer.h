@@ -56,10 +56,10 @@ class ParticleContainer {
 
   /**
    * Iterate over every unique pair of particles in the container and apply f(p_i, p_j).
-   * @param f Callable taking to Particle references
+   * @param f Callable taking two Particle references
    */
   template <class F>
-  void forEachPair(F &f) {
+  void forEachPair(const F &f) {
     for (std::size_t i = 0; i < particles.size(); ++i) {
       for (std::size_t j = i + 1; j < particles.size(); ++j) {
         f(particles[i], particles[j]);
