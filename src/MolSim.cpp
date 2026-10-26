@@ -13,8 +13,6 @@
 #include "io/output/XYZWriter.h"
 
 int main(int argc, char *argv[]) {
-  std::cout << "Hello from MolSim for PSE!" << '\n';
-
   // parse the command line arguments
   auto params = cli::parseArguments(argc, argv);
   if (!params) {
@@ -41,8 +39,8 @@ int main(int argc, char *argv[]) {
 
   // instantiate and start the Simulator
   Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, std::move(output_writers)};
+  std::cout << "Hello from MolSim for PSE!" << '\n' << "Simulating ... " << "\n";
   simulator.runSimulation();
-
   std::cout << "Simulation complete. Terminating..." << '\n';
   return EXIT_SUCCESS;
 }

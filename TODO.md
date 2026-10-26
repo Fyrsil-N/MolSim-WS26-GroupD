@@ -3,7 +3,6 @@
 ## Documentation
 
 * list prerequisites and dependencies somewhere
-* fill out the architecture subheading
 * (starting from task 2) add documentation on how to use the ctest as well
 
 ___
@@ -25,7 +24,4 @@ ___
 
 * add the doxygen make target
 * add the binary vtk support
-* task 4 everything
-    * would be cool to visualize the size of the particles due to their mass?
 * presentation
-* group the input methods behind an input reader interface
