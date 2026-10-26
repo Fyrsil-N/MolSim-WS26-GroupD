@@ -41,3 +41,4 @@
 
 # doxygen outputs
 /doxys_documentation/
+/doxygen-output/
