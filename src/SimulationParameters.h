@@ -9,23 +9,23 @@
  * Parameters for a simulation run
  */
 struct SimulationParameters {
-  /**
-   * Path to the input_file with initial particle settings
-   */
-  std::string input_file;
+    /**
+     * Path to the input_file with initial particle settings
+     */
+    std::string input_file;
 
-  /**
-   * Time step size of the simulation
-   */
-  double delta_t = 0.014;
+    /**
+     * Time step size of the simulation
+     */
+    double delta_t = 0.014;
 
-  /**
-   * End time of the simulation
-   */
-  double t_end = 1000;
+    /**
+     * End time of the simulation
+     */
+    double t_end = 1000;
 
-  /**
-   * The program generates an output state every output_interval iterations
-   */
-  int output_interval = 10;
+    /**
+     * The program generates an output state every output_interval iterations
+     */
+    int output_interval = 10;
 };

@@ -23,31 +23,31 @@ namespace io {
  * particles using the official VTK library.
  */
 class VTKWriter : public OutputWriter {
- private:
-  /**
-   * Output filenames are of the form output_filename_<current_iteration>.vtu
-   */
-  std::string output_filename;
+   private:
+    /**
+     * Output filenames are of the form output_filename_<current_iteration>.vtu
+     */
+    std::string output_filename;
 
- public:
-  /**
-   * Constructor for the VTK Writer
-   * @param output_interval Output is written every output_interval iterations
-   * @param filename Prefix of all output files
-   */
-  VTKWriter(int output_interval, std::string filename);
+   public:
+    /**
+     * Constructor for the VTK Writer
+     * @param output_interval Output is written every output_interval iterations
+     * @param filename Prefix of all output files
+     */
+    VTKWriter(int output_interval, std::string filename);
 
-  // Delete copy constructor and assignment operator
-  VTKWriter(const VTKWriter &) = delete;
-  VTKWriter &operator=(const VTKWriter &) = delete;
+    // Delete copy constructor and assignment operator
+    VTKWriter(const VTKWriter &) = delete;
+    VTKWriter &operator=(const VTKWriter &) = delete;
 
-  /**
-   * Write VTK output of particles.
-   * @param particles Particles to add to the output
-   * @param iteration Current iteration number
-   * @param time Current in-simulation time
-   */
-  void onStep(const ParticleContainer &particles, int iteration, double time) override;
+    /**
+     * Write VTK output of particles.
+     * @param particles Particles to add to the output
+     * @param iteration Current iteration number
+     * @param time Current in-simulation time
+     */
+    void onStep(const ParticleContainer &particles, int iteration, double time) override;
 };
 
 }  // namespace io
