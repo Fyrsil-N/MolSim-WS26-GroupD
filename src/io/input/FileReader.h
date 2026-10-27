@@ -12,6 +12,10 @@
 
 namespace io {
 
+/**
+ * This class implements functionality to read initial particle configurations out of an input file and create the
+ * corresponding ParticleContainer and Particles.
+ */
 class FileReader : public InputReader {
    private:
     /**

@@ -5,6 +5,10 @@
 #pragma once
 #include "ParticleContainer.h"
 
+/**
+ * Namespace io groups all interfaces and classes used to read in particle data at the start of the simulation and used
+ * to output the state of the simulation.
+ */
 namespace io {
 /**
  * This class defines a unified interface for all types of output methods to use (both output file based and live

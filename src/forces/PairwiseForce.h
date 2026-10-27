@@ -8,6 +8,9 @@
 
 #include "Particle.h"
 
+/**
+ * Namespace forces groups types of forces that can act on particles.
+ */
 namespace forces {
 
 /**

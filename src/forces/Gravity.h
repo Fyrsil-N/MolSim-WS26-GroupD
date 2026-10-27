@@ -7,6 +7,9 @@
 
 namespace forces {
 
+/**
+ * This class implements the computation of gravitational attraction between two particles.
+ */
 class Gravity : public PairwiseForce {
    public:
     /**

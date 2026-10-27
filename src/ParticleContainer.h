@@ -20,7 +20,9 @@ class ParticleContainer {
     std::vector<Particle> particles;
 
    public:
+    /** Mutable iterator over the particles. */
     using iterator = std::vector<Particle>::iterator;
+    /** Read-only iterator over the particles. */
     using const_iterator = std::vector<Particle>::const_iterator;
 
     /**
@@ -48,10 +50,14 @@ class ParticleContainer {
      * @return True if the container is empty
      */
     bool empty() const;
-
+    
+    /** @return Iterator to the first particle */
     iterator begin();
+    /** @return Iterator past the last particle */
     iterator end();
+    /** @return Read-only iterator to the first particle */
     const_iterator begin() const;
+    /** @return Read-only iterator past the last particle */
     const_iterator end() const;
 
     /**
