@@ -88,7 +88,7 @@ make -j # compile the project
 Configuration flags for the first command:
 
 * `-DCMAKE_BUILD_TYPE=Debug` for a debug build
-* `-BUILD_DOC_DOXYGEN=On` to create the doc_doxygen target
+* `-BUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target
 
 If a configuration breaks or needs to be changed, remove the old build by running from project root:
 
@@ -100,7 +100,7 @@ rm -rf build
 
 * `make format` uses clang-format and the `.clang-format` template to ensure consistent formatting of the project (run
   before any commit).
-* `make doc_doxygen` is used to build the Doxygen documentation. (Only available if enabled during build)
+* `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled during build)
 
 ### Execution
 

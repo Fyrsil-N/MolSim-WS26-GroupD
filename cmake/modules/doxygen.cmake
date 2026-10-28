@@ -1,5 +1,5 @@
 # make doc_doxygen optional if someone does not have / like doxygen
-option(BUILD_DOC_DOXYGEN "Build Doxygen documentation" OFF)
+option(BUILD_DOC_DOXYGEN "Build Doxygen documentation" ON)
 
 
 if(BUILD_DOC_DOXYGEN)
