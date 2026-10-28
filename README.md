@@ -88,7 +88,7 @@ make -j # compile the project
 Configuration flags for the first command:
 
 * `-DCMAKE_BUILD_TYPE=Debug` for a debug build
-* `-BUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target
+* `-DBUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target
 
 If a configuration breaks or needs to be changed, remove the old build by running from project root:
 
@@ -125,6 +125,7 @@ Options:
 ```
 
 ### Doxygen Documentation
+
 When the target doc_doxygen was executed, Doxygen creates a subfolder within the working directory: `doxygen-output/`.
 
 This folder contains a by doxygen automatically created documentation as an HTML-Website or as LATEX-Code.
