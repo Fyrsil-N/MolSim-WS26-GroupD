@@ -89,6 +89,7 @@ Configuration flags for the first command:
 
 * `-DCMAKE_BUILD_TYPE=Debug` for a debug build
 * `-DENABLE_VTK_OUTPUT=On` to output the simulation in VTK format instead of XYZ files
+* `-BUILD_DOC_DOXYGEN=On` to create the doc_doxygen target
 
 If a configuration breaks or needs to be changed, remove the old build by running from project root:
 
@@ -100,7 +101,7 @@ rm -rf build
 
 * `make format` uses clang-format and the `.clang-format` template to ensure consistent formatting of the project (run
   before any commit).
-* `make doc_doxygen` is used to build the Doxygen documentation.
+* `make doc_doxygen` is used to build the Doxygen documentation. (Only available if enabled during build)
 
 ### Execution
 
@@ -122,3 +123,14 @@ Options:
   -o, --output-interval <int>    output is written every N iterations (default: 10)
   -h, --help                     print this help and exit
 ```
+
+### Doxygen Documentation
+When the target doc_doxygen was executed, Doxygen creates a subfolder within the working directory: `doxygen-output/`.
+
+This folder contains a by doxygen automatically created documentation as an HTML-Website or as LATEX-Code.
+
+The HTML Website can be viewed by opening `doxygen-output/html/index.html` in a browser.
+
+The LATEX Code can be used to generate a pdf, which contains the documentation, by executing `make` within
+the `doxygen-output/latex` folder (only if LATEX is installed). This created a refman.pdf, which contains
+the full documentation.
