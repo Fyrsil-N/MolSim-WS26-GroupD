@@ -88,6 +88,7 @@ make -j # compile the project
 Configuration flags for the first command:
 
 * `-DCMAKE_BUILD_TYPE=Debug` for a debug build
+* `-DENABLE_VTK_OUTPUT=OFF` to disable vtk output
 * `-DBUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target
 
 If a configuration breaks or needs to be changed, remove the old build by running from project root:
@@ -123,6 +124,7 @@ Options:
   -v, --vtk                      set vtk output flag (default: xyz)
   -h, --help                     print this help and exit
 ```
+Note: -v is only available if vtk output is enabled, e.g. the `ENABLE_VTK_OUTPUT` flag is set.
 
 ### Doxygen Documentation
 

@@ -4,7 +4,7 @@
  *  Created on: 01.03.2010
  *      Author: eckhardw
  */
-
+#ifdef ENABLE_VTK_OUTPUT
 #include "io/output/VTKWriter.h"
 
 #include <vtkCellArray.h>
@@ -80,3 +80,4 @@ void VTKWriter::onStep(const ParticleContainer &particles, int iteration, double
     writer->Write();
 }
 }  // namespace io
+#endif

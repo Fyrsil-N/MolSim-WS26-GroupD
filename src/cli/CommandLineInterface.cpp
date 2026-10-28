@@ -28,7 +28,9 @@ void printHelp(const char *program_name) {
               << "  -e, --t-end <double>           end time (default: " << defaults.t_end << ")\n"
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
+#ifdef ENABLE_VTK_OUTPUT
               << "  -v, --vtk                      set vtk output flag (default: xyz)\n"
+#endif
               << "  -h, --help                     print this help and exit\n";
 }
 
@@ -74,7 +76,9 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"delta-t", required_argument, nullptr, 'd'},
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
+#ifdef ENABLE_VTK_OUTPUT
         {"vtk", no_argument, nullptr, 'v'},
+#endif
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -108,9 +112,11 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.output_interval = *value;
                 break;
             }
+#ifdef ENABLE_VTK_OUTPUT
             case 'v':
                 params.vtk_output = true;
                 break;
+#endif
             case 'h':
                 printHelp(argv[0]);
                 std::exit(EXIT_SUCCESS);

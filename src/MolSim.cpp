@@ -26,10 +26,13 @@ int main(int argc, char *argv[]) {
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
+#ifdef ENABLE_VTK_OUTPUT
     if (params->vtk_output) {
         std::string out_name("MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
-    } else {
+    }
+#endif
+    if (!params->vtk_output) {
         std::string out_name("MD_XYZ");
         output_writers.push_back(std::make_unique<io::XYZWriter>(params->output_interval, out_name));
     }
