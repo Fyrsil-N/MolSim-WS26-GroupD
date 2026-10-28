@@ -14,7 +14,6 @@ ___
 ## Features
 
 * maintain the vtk reader inside of the class dont regen it every time
-* maybe add a runtime selection between vtk,xyz and other writers.
 * deduplicate the interval checking by having it sit in outputWriter and then calling the actual private virtual write
   function.
 

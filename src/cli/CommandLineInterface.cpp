@@ -28,6 +28,7 @@ void printHelp(const char *program_name) {
               << "  -e, --t-end <double>           end time (default: " << defaults.t_end << ")\n"
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
+              << "  -v, --vtk                      set vtk output flag (default: xyz)\n"
               << "  -h, --help                     print this help and exit\n";
 }
 
@@ -73,6 +74,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"delta-t", required_argument, nullptr, 'd'},
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
+        {"vtk", no_argument, nullptr, 'v'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -80,7 +82,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:h", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:vh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -106,6 +108,9 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.output_interval = *value;
                 break;
             }
+            case 'v':
+                params.vtk_output = true;
+                break;
             case 'h':
                 printHelp(argv[0]);
                 std::exit(EXIT_SUCCESS);

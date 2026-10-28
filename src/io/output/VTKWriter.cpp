@@ -4,7 +4,7 @@
  *  Created on: 01.03.2010
  *      Author: eckhardw
  */
-#ifdef ENABLE_VTK_OUTPUT
+
 #include "io/output/VTKWriter.h"
 
 #include <vtkCellArray.h>
@@ -68,7 +68,7 @@ void VTKWriter::onStep(const ParticleContainer &particles, int iteration, double
 
     // Create filename with iteration number
     std::stringstream strstr;
-    strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".vtu";
+    strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration / output_interval << ".vtu";
 
     // Create writer and set data
     vtkNew<vtkXMLUnstructuredGridWriter> writer;
@@ -80,4 +80,3 @@ void VTKWriter::onStep(const ParticleContainer &particles, int iteration, double
     writer->Write();
 }
 }  // namespace io
-#endif

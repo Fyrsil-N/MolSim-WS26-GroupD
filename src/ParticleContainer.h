@@ -50,7 +50,7 @@ class ParticleContainer {
      * @return True if the container is empty
      */
     bool empty() const;
-    
+
     /** @return Iterator to the first particle */
     iterator begin();
     /** @return Iterator past the last particle */

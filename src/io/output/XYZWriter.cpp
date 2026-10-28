@@ -23,7 +23,7 @@ void XYZWriter::onStep(const ParticleContainer &particles, int iteration, double
     }
     std::ofstream file;
     std::stringstream strstr;
-    strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration << ".xyz";
+    strstr << output_filename << "_" << std::setfill('0') << std::setw(4) << iteration / output_interval << ".xyz";
 
     file.open(strstr.str().c_str());
     file << particles.size() << std::endl;

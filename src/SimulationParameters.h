@@ -28,4 +28,9 @@ struct SimulationParameters {
      * The program generates an output state every output_interval iterations
      */
     int output_interval = 10;
+
+    /**
+     * VTK output flag (xyz if false)
+     */
+    bool vtk_output = false;
 };
