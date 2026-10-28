@@ -21,6 +21,5 @@ ___
 
 ## Assignment1
 
-* add the doxygen make target
 * add the binary vtk support
 * presentation
