@@ -13,6 +13,7 @@ ___
 
 ## Features
 
+* write output files into an `out/` subdirectory instead of into build
 * maintain the vtk reader inside of the class dont regen it every time
 * deduplicate the interval checking by having it sit in outputWriter and then calling the actual private virtual write
   function.
