@@ -26,13 +26,15 @@ int main(int argc, char *argv[]) {
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
-#ifdef ENABLE_VTK_OUTPUT
     if (params->vtk_output) {
+#ifdef ENABLE_VTK_OUTPUT
         std::string out_name("MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
-    }
+#else  // safe guard should never be reached
+        std::cerr << "Invalid Flag -v set. VTK is not available to this build.\n";
+        return EXIT_FAILURE;
 #endif
-    if (!params->vtk_output) {
+    } else {
         std::string out_name("MD_XYZ");
         output_writers.push_back(std::make_unique<io::XYZWriter>(params->output_interval, out_name));
     }

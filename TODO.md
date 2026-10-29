@@ -16,10 +16,9 @@ ___
 * maintain the vtk reader inside of the class dont regen it every time
 * deduplicate the interval checking by having it sit in outputWriter and then calling the actual private virtual write
   function.
+* UML style graphs using doxygen (requires the dot program)
+* add the binary vtk support
 
 ---
 
 ## Assignment1
-
-* add the binary vtk support
-* presentation

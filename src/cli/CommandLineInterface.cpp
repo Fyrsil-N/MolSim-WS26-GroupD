@@ -29,7 +29,9 @@ void printHelp(const char *program_name) {
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
 #ifdef ENABLE_VTK_OUTPUT
-              << "  -v, --vtk                      set vtk output flag (default: xyz)\n"
+              << "  -v, --vtk                      output simulation files using vtk (default: xyz)\n"
+#else
+              << "  -v, --vtk                      output simulation files using vtk (unavailable in this build)\n"
 #endif
               << "  -h, --help                     print this help and exit\n";
 }
@@ -76,9 +78,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"delta-t", required_argument, nullptr, 'd'},
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
-#ifdef ENABLE_VTK_OUTPUT
         {"vtk", no_argument, nullptr, 'v'},
-#endif
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -112,14 +112,20 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.output_interval = *value;
                 break;
             }
+            case 'v': {
 #ifdef ENABLE_VTK_OUTPUT
-            case 'v':
                 params.vtk_output = true;
-                break;
+#else
+                return fail(
+                    "unsupported flag -v set. VTK is not available to the program.\nTo enable the VTK output "
+                    "reconfigure with the ENABLE_VTK_OUTPUT option turned on.");
 #endif
-            case 'h':
+                break;
+            }
+            case 'h': {
                 printHelp(argv[0]);
                 std::exit(EXIT_SUCCESS);
+            }
             case ':':
                 return fail("option '" + std::string(argv[optind - 1]) + "' requires an argument");
             default:

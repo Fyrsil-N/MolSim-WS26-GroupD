@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "InputReader.h"
 #include "ParticleContainer.h"
 

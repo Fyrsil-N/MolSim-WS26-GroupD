@@ -58,7 +58,7 @@ void FileReader::readInParticles(ParticleContainer &particles) {
                 datastream >> vj;
             }
             if (datastream.eof()) {
-                std::cout << "Error reading file: eof reached unexpectedly reading from line " << i << std::endl;
+                std::cerr << "Error reading file: eof reached unexpectedly reading from line " << i << std::endl;
                 exit(-1);
             }
             datastream >> m;
@@ -68,7 +68,7 @@ void FileReader::readInParticles(ParticleContainer &particles) {
             std::cout << "Read line: " << tmp_string << std::endl;
         }
     } else {
-        std::cout << "Error: could not open file " << input_filename << std::endl;
+        std::cerr << "Error: could not open file " << input_filename << std::endl;
         exit(-1);
     }
 }
