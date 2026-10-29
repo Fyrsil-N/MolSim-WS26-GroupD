@@ -1,102 +1,51 @@
 
+#include <cstdlib>
 #include <iostream>
-#include <list>
+#include <memory>
 
-#include "FileReader.h"
-#include "outputWriter/XYZWriter.h"
-#include "utils/ArrayUtils.h"
+#include "ParticleContainer.h"
+#include "Simulator.h"
+#include "cli/CommandLineInterface.h"
+#include "forces/Gravity.h"
+#include "forces/PairwiseForce.h"
+#include "io/input/FileReader.h"
+#include "io/output/VTKWriter.h"
+#include "io/output/XYZWriter.h"
 
-/**** forward declaration of the calculation functions ****/
-
-/**
- * calculate the force for all particles
- */
-void calculateF();
-
-/**
- * calculate the position for all particles
- */
-void calculateX();
-
-/**
- * calculate the position for all particles
- */
-void calculateV();
-
-/**
- * plot the particles to a xyz-file
- */
-void plotParticles(int iteration);
-
-constexpr double start_time = 0;
-constexpr double end_time = 1000;
-constexpr double delta_t = 0.014;
-
-// TODO: what data structure to pick?
-std::list<Particle> particles;
-
-int main(int argc, char *argsv[]) {
-  std::cout << "Hello from MolSim for PSE!" << std::endl;
-  if (argc != 2) {
-    std::cout << "Erroneous programme call! " << std::endl;
-    std::cout << "./molsym filename" << std::endl;
-  }
-
-  FileReader fileReader;
-  fileReader.readFile(particles, argsv[1]);
-
-  double current_time = start_time;
-
-  int iteration = 0;
-
-  // for this loop, we assume: current x, current f and current v are known
-  while (current_time < end_time) {
-    // calculate new x
-    calculateX();
-    // calculate new f
-    calculateF();
-    // calculate new v
-    calculateV();
-
-    iteration++;
-    if (iteration % 10 == 0) {
-      plotParticles(iteration);
+int main(int argc, char *argv[]) {
+    // parse the command line arguments
+    auto params = cli::parseArguments(argc, argv);
+    if (!params) {
+        return EXIT_FAILURE;
     }
-    std::cout << "Iteration " << iteration << " finished." << std::endl;
 
-    current_time += delta_t;
-  }
+    // create the particle container and fill it
+    ParticleContainer particles{};
+    io::FileReader file_reader(params->input_file);
+    file_reader.readInParticles(particles);
 
-  std::cout << "output written. Terminating..." << std::endl;
-  return 0;
-}
-
-void calculateF() {
-  std::list<Particle>::iterator iterator;
-  iterator = particles.begin();
-
-  for (auto &p1 : particles) {
-    for (auto &p2 : particles) {
-      // @TODO: insert calculation of forces here!
+    // set up the output methods
+    std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
+    if (params->vtk_output) {
+#ifdef ENABLE_VTK_OUTPUT
+        std::string out_name("MD_vtk");
+        output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
+#else  // safe guard should never be reached
+        std::cerr << "Invalid Flag -v set. VTK is not available to this build.\n";
+        return EXIT_FAILURE;
+#endif
+    } else {
+        std::string out_name("MD_XYZ");
+        output_writers.push_back(std::make_unique<io::XYZWriter>(params->output_interval, out_name));
     }
-  }
-}
 
-void calculateX() {
-  for (auto &p : particles) {
-    // @TODO: insert calculation of position updates here!
-  }
-}
+    // instantiate (and combine if necessary) the forces to be used in the simulation
+    std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::Gravity>();
 
-void calculateV() {
-  for (auto &p : particles) {
-    // @TODO: insert calculation of veclocity updates here!
-  }
-}
-
-void plotParticles(int iteration) {
-  std::string out_name("MD_vtk");
-
-  outputWriter::XYZWriter writer;
-  writer.plotParticles(particles, out_name, iteration);
+    // instantiate and start the Simulator
+    Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, std::move(output_writers)};
+    std::cout << "Hello from MolSim for PSE!" << '\n' << "Simulating ... " << "\n";
+    simulator.runSimulation();
+    std::cout << "Simulation complete. Terminating..." << '\n';
+    return EXIT_SUCCESS;
 }
