@@ -5,6 +5,9 @@ Group D (Tjorben Huber, Luka Maric, Florian Mathis).
 
 ## Architecture
 
+The project is split into a library `MolSimCore` and an actual executable `MolSim`. This way functionality and
+instantiation are separated and the testing framework can make direct use of all code as well.
+
 ### Simulation core: `Simulator`, `ParticleContainer`, `Particle`
 
 * `Simulator` owns all parts of the program related to physical updates and the main simulation loop.
@@ -87,10 +90,11 @@ make -j # compile the project
 
 Configuration flags for different builds (passed to cmake):
 
-* `-DCMAKE_BUILD_TYPE=Debug` for a debug build
+* `-DCMAKE_BUILD_TYPE=Debug` for a debug build (default: `Release`)
 * `-DENABLE_VTK_OUTPUT=OFF` to build without VTK output. Required on machines without VTK installed, otherwise the
-  configuration fails. The default is `ON`.
-* `-DBUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target
+  configuration fails. (default: `ON`)
+* `-DBUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target. (default: `ON`)
+* `-DUSE_GOOGLETEST=OFF` for google test to not be built. Speeds up compilation. (default: `ON`)
 
 If a configuration breaks or needs to be changed, remove the old build by running from project root:
 
@@ -102,7 +106,7 @@ rm -rf build
 
 * `make format` uses clang-format and the `.clang-format` template to ensure consistent formatting of the project (run
   before any commit).
-* `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled during build)
+* `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled in cmake configuration)
 
 ### Execution
 
@@ -140,3 +144,14 @@ The HTML Website can be viewed by opening `doxygen-output/html/index.html` in a 
 The LATEX Code can be used to generate a pdf, which contains the documentation, by executing `make` within
 the `doxygen-output/latex` folder (only if LATEX is installed). This creates a refman.pdf, which contains
 the full documentation.
+
+### Tests
+
+The project uses the googletest framework for unit testing. All tests can be found in the `tests/` directory.
+
+After building the project, run tests from the `build/` folder using:
+
+```bash
+ctest
+ctest --output-on-failure #Output anything outputted by the test program if the test should fail.
+```
