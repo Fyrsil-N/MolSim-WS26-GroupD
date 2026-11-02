@@ -1,2 +1,2 @@
 cd build
-./MolSim ../input/eingabe-sonne.txt -v
+./MolSim ../input/test.conf -v
