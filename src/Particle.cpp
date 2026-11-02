@@ -60,9 +60,14 @@ std::string Particle::toString() const {
     return stream.str();
 }
 
-bool Particle::operator==(Particle &other) {
+bool Particle::operator==(const Particle &other) const {
     return (x == other.x) and (v == other.v) and (f == other.f) and (type == other.type) and (m == other.m) and
            (old_f == other.old_f);
+}
+
+double Particle::distanceTo(const Particle &other) const {
+    const auto diff = this->getX() - other.getX();
+    return std::max(ArrayUtils::L2Norm(diff), std::numeric_limits<double>::denorm_min());
 }
 
 std::ostream &operator<<(std::ostream &stream, Particle &p) {

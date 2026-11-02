@@ -7,6 +7,7 @@
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
 #include "forces/Gravity.h"
+#include "forces/LennardJones.h"
 #include "forces/PairwiseForce.h"
 #include "io/input/FileReader.h"
 #include "io/output/VTKWriter.h"
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
     }
 
     // instantiate (and combine if necessary) the forces to be used in the simulation
-    std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::Gravity>();
+    std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::LennardJones>();
 
     // instantiate and start the Simulator
     Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, std::move(output_writers)};
