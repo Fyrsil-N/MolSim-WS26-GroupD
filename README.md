@@ -32,7 +32,8 @@ instantiation are separated and the testing framework can make direct use of all
 * `PairwiseForce` is an abstract class defining an interface for forces acting antisymmetrically and pairwise on
   particles.
     * It only requires the `calculateForce` method between two particles.
-    * Currently only `Gravity` implementing gravitational attraction is a valid option.
+    * Currently `Gravity` implementing gravitational attraction and `LennardJones` implementing the Lennard-Jones force 
+  are valid options.
 * An `ExternalForce` interface to consider forces acting on each particle individually is possible and would follow a
   similar pattern.
 * Combining multiple forces is also possible in theory. As long as the `calculateForce` signature is maintained multiple
