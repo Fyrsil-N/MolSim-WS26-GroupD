@@ -72,4 +72,9 @@ class ParticleContainer {
             }
         }
     }
+
+    /**
+     * @return human readable representation of a ParticleContainer
+     */
+    std::string toString() const;
 };
