@@ -11,6 +11,7 @@
 #include <iostream>
 #include <utility>
 
+#include "../../../cmake-build-debug/_deps/spdlog-src/include/spdlog/spdlog.h"
 #include "ParticleContainer.h"
 #include "utils/ArrayUtils.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
@@ -23,7 +24,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
     std::ifstream input_file(config_filename);
 
     if (!input_file.is_open()) {
-        std::cerr << "Error: could not open file " << config_filename << std::endl;
+        //Used error here due to the original error function
+        spdlog::error("Error: could not open file " + config_filename);
         exit(-1);
     }
     std::string tmp_string;
@@ -33,7 +35,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
         if (tmp_string.empty() || tmp_string.at(0) == '#') continue;
 
         if (tmp_string != "cuboid:") {
-            std::cerr << "Error: Form '" << tmp_string << "' unknown." << std::endl;
+            //Used error here due to the original error function
+            spdlog::error("Error: Form '" + tmp_string + "' unknown.");
             continue;
         }
 
@@ -44,7 +47,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
 
         for (int i = 0; i < 5; ++i) {
             if (!input_file.good() || input_file.eof()) {
-                std::cerr << "Error reading file: " << config_filename << std::endl;
+                //Used error here due to the original error function
+                spdlog::error("Error reading file: " + config_filename);
                 exit(-1);
             }
 
@@ -77,7 +81,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                     particle_mass = stod(tmp_string);
                     break;
                 default:
-                    std::cerr << "How did you even reach this???" << std::endl;
+                    //Used error here due to the original error function
+                    spdlog::error("How did you even reach this???");
                     abort();
             }
         }

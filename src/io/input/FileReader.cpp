@@ -13,6 +13,7 @@
 #include <sstream>
 #include <utility>
 
+#include "../../../cmake-build-debug/_deps/spdlog-src/include/spdlog/spdlog.h"
 #include "ParticleContainer.h"
 
 namespace io {
@@ -29,24 +30,27 @@ void FileReader::readInParticles(ParticleContainer &particles) {
     std::string tmp_string;
 
     if (!input_file.is_open()) {
-        std::cerr << "Error: could not open file " << input_filename << std::endl;
+        //Used error here due to the original error function
+        spdlog::error("Error: could not open file " + input_filename);
         exit(-1);
     }
 
     getline(input_file, tmp_string);
-    std::cout << "Read line: " << tmp_string << std::endl;
+    //Used info here, since this information is not critical to the user
+    spdlog::info("Read line: " + tmp_string);
 
     while (tmp_string.empty() or tmp_string[0] == '#') {
         getline(input_file, tmp_string);
-        std::cout << "Read line: " << tmp_string << std::endl;
+        //Used info here, since this information is not critical to the user
+        spdlog::info("Read line: " + tmp_string);
     }
 
     std::istringstream numstream(tmp_string);
     numstream >> num_particles;
-    std::cout << "Reading " << num_particles << "." << std::endl;
+    //Used info here, since this information is not critical to the user
+    spdlog::info("Reading " + std::to_string(num_particles) + ".");
     getline(input_file, tmp_string);
-    std::cout << "Read line: " << tmp_string << std::endl;
-
+    spdlog::info("Read line: " + tmp_string);
     // reserve the space needed before hand to reduce moves of the ParticleContainer
     if (num_particles > 0) {
         particles.reserve(particles.size() + num_particles);
@@ -62,14 +66,16 @@ void FileReader::readInParticles(ParticleContainer &particles) {
             datastream >> vj;
         }
         if (datastream.eof()) {
-            std::cerr << "Error reading file: eof reached unexpectedly reading from line " << i << std::endl;
+            //Used error here due to the original error function
+            spdlog::error("Error reading file: eof reached unexpectedly reading from line " + std::to_string(i));
             exit(-1);
         }
         datastream >> m;
         particles.emplaceBack(x, v, m);
 
         getline(input_file, tmp_string);
-        std::cout << "Read line: " << tmp_string << std::endl;
+        //Used info here, since this information is not critical to the user
+        spdlog::info("Read line: " + tmp_string);
     }
 }
 

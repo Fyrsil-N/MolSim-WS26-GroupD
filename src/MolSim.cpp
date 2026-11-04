@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 
+#include "../cmake-build-debug/_deps/spdlog-src/include/spdlog/spdlog.h"
 #include "ParticleContainer.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
@@ -35,7 +36,8 @@ int main(int argc, char *argv[]) {
         std::string out_name("MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
 #else  // safe guard should never be reached
-        std::cerr << "Invalid Flag -v set. VTK is not available to this build.\n";
+        //Used error here due to the original error function
+        spdlog::error("Invalid Flag -v set. VTK is not available to this build.")
         return EXIT_FAILURE;
 #endif
     } else {
@@ -48,8 +50,9 @@ int main(int argc, char *argv[]) {
 
     // instantiate and start the Simulator
     Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, std::move(output_writers)};
-    std::cout << "Hello from MolSim for PSE!" << '\n' << "Simulating ... " << "\n";
+    //Used info here, since this information is not critical to the user
+    spdlog::info("Hello from MolSim for PSE!\nSimulating ... ");
     simulator.runSimulation();
-    std::cout << "Simulation complete. Terminating..." << '\n';
+    spdlog::info("Simulation complete. Terminating...");
     return EXIT_SUCCESS;
 }
