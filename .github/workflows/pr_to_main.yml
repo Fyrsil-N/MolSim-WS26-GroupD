@@ -3,13 +3,32 @@ on:
   push:
 jobs:
   build-and-test:
+    name: Tester
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v7
       - name: Build the project
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_VTK_OUTPUT=OFF -DBUILD_DOC_DOXYGEN=OFF
+          CXX=g++ cmake -S . -B build -DENABLE_VTK_OUTPUT=OFF -DBUILD_DOC_DOXYGEN=OFF
           cmake --build build -j
       - name: Execute the tests
         run: ctest --test-dir build --output-on-failure
+
+  address-sanitizer:
+    name: AddressSanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+      - name: Build with address-sanitizer
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
+            -DENABLE_VTK_OUTPUT=OFF \
+            -DBUILD_DOC_DOXYGEN=OFF
+          cmake --build build -j
+      - name: Execute a test simulation
+        run: ./build/MolSim -d 0.1 -e 100 input/eingabe-sonne.txt
