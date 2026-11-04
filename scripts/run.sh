@@ -1,4 +1,4 @@
 cd build
 rm *.vtu
 rm *.xyz
-./MolSim ../input/testInput -v -o 100 -e 10 -d 0.0002
+./MolSim ../input/Assignment2_params -v -o 50 -e 5 -d 0.0002

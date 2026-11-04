@@ -37,9 +37,10 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
             continue;
         }
 
-        std::array<double, 3> start_coordinates{}, end_coordinates{}, total_velocity{};
+        std::array<size_t, 3> particle_count{};
+        std::array<double, 3> start_coordinates{}, particle_count_in{}, total_velocity{};
         double spacing = 0;
-        double total_mass = 0;
+        double particle_mass = 0;
 
         for (int i = 0; i < 5; ++i) {
             if (!input_file.good() || input_file.eof()) {
@@ -61,7 +62,10 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                     convertStringToArray(start_coordinates, tmp_string);
                     break;
                 case 1:
-                    convertStringToArray(end_coordinates, tmp_string);
+                    convertStringToArray(particle_count_in, tmp_string);
+                    for (int j = 0; j < 3; ++j) {
+                        particle_count.at(j) = static_cast<size_t>(particle_count_in.at(j));
+                    }
                     break;
                 case 2:
                     convertStringToArray(total_velocity, tmp_string);
@@ -70,7 +74,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                     spacing = stod(tmp_string);
                     break;
                 case 4:
-                    total_mass = stod(tmp_string);
+                    particle_mass = stod(tmp_string);
                     break;
                 default:
                     std::cerr << "How did you even reach this???" << std::endl;
@@ -78,28 +82,22 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
             }
         }
 
-        size_t x_particle_size =
-            static_cast<int>(std::abs(end_coordinates.at(0) - start_coordinates.at(0)) / spacing) + 1;
-        size_t y_particle_size =
-            static_cast<int>(std::abs(end_coordinates.at(1) - start_coordinates.at(1)) / spacing) + 1;
-        size_t z_particle_size =
-            static_cast<int>(std::abs(end_coordinates.at(2) - start_coordinates.at(2)) / spacing) + 1;
-        particles.reserve(x_particle_size * y_particle_size * z_particle_size);
-        for (unsigned int x = 0; x < x_particle_size; ++x) {
-            for (unsigned int y = 0; y < y_particle_size; ++y) {
-                for (unsigned int z = 0; z < z_particle_size; ++z) {
+        particles.reserve(particle_count.at(0) * particle_count.at(1) * particle_count.at(2));
+        for (unsigned int x = 0; x < particle_count.at(0); ++x) {
+            for (unsigned int y = 0; y < particle_count.at(1); ++y) {
+                for (unsigned int z = 0; z < particle_count.at(2); ++z) {
                     std::array<double, 3> pos = {start_coordinates.at(0) + static_cast<double>(x) * spacing,
                                                  start_coordinates.at(1) + static_cast<double>(y) * spacing,
                                                  start_coordinates.at(2) + static_cast<double>(z) * spacing};
                     particles.emplaceBack(pos, total_velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
-                                          total_mass);
+                    particle_mass);
                 }
             }
         }
     }
 }
 
-// Function to convert coordinates in a string in the form "x y z" to an integer array
+// Function to convert coordinates in a string in the form "x y z" to a double array
 void ParticleCreator::convertStringToArray(std::array<double, 3> &array_to_fill, const std::string &line) {
     int index_to_fill = 0;
     std::string tmp = "";
