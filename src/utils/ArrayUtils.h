@@ -148,12 +148,12 @@ inline Container elementWisePairOp(const Container &lhs, const Container &rhs, F
 template <class Scalar, class Container, class F>
 inline Container elementWiseScalarOp(const Scalar &lhs, const Container &rhs, F binaryFunction) {
     Container ret = rhs;
-    auto retIter = std::begin(ret);
-    auto rhsIter = std::cbegin(rhs);
-    const auto rhsEnd = std::cend(rhs);
+    auto ret_iter = std::begin(ret);
+    auto rhs_iter = std::cbegin(rhs);
+    const auto rhs_end = std::cend(rhs);
 
-    for (; rhsIter != rhsEnd; ++rhsIter, ++retIter) {
-        *retIter = binaryFunction(lhs, *rhsIter);
+    for (; rhs_iter != rhs_end; ++rhs_iter, ++ret_iter) {
+        *ret_iter = binaryFunction(lhs, *rhs_iter);
     }
 
     return ret;

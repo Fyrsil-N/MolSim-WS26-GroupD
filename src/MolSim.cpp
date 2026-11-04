@@ -23,9 +23,9 @@ int main(int argc, char *argv[]) {
 
     // create the particle container and fill it
     ParticleContainer particles{};
-    //io::FileReader file_reader(params->input_file);
-    //file_reader.readInParticles(particles);
-    //Permanently use the new ParticleCreator instead of the old FileReader
+    // io::FileReader file_reader(params->input_file);
+    // file_reader.readInParticles(particles);
+    // Permanently use the new ParticleCreator instead of the old FileReader
     io::ParticleCreator file_reader(params->input_file);
     file_reader.readInParticles(particles);
     // set up the output methods

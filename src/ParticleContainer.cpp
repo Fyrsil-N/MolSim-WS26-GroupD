@@ -23,7 +23,7 @@ ParticleContainer::const_iterator ParticleContainer::end() const { return partic
 
 std::string ParticleContainer::toString() const {
     std::string return_string = "";
-    for (const Particle& p : particles) {
+    for (const Particle &p : particles) {
         return_string += p.toString() + "\n";
     }
     return return_string;
