@@ -34,24 +34,24 @@ set(COMPILE_FLAGS
         $<$<CXX_COMPILER_ID:Intel>:-w3 -wd383,981,1418,1572,2259>
 )
 
-include(FetchContent)
+include(FetchContent) # needed to download spdlog
 
+# spdlog dependency
 FetchContent_Declare(
         spdlog
-        GIT_REPOSITORY  https://github.com/gabime/spdlog.git
-        GIT_TAG         v1.15.0
+        URL https://github.com/gabime/spdlog/archive/79524ddd08a4ec981b7fea76afd08ee05f83755d.zip # use v1.17.0 (newest release)
 )
 FetchContent_MakeAvailable(spdlog)
 
 # build the core libary
 add_library(MolSimCore ${LIB_SRC})
 target_include_directories(MolSimCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(MolSimCore PUBLIC spdlog::spdlog)
 target_compile_options(MolSimCore PRIVATE ${COMPILE_FLAGS})
 
 # build the actual executable
 add_executable(MolSim ${CMAKE_CURRENT_SOURCE_DIR}/src/MolSim.cpp)
 target_link_libraries(MolSim PRIVATE MolSimCore)
-target_link_libraries(MolSim PRIVATE spdlog::spdlog)
 target_compile_options(MolSim PRIVATE ${COMPILE_FLAGS})
 
 # make downloading and using googletest optional as it slows down compilation
