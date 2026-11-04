@@ -1,4 +1,4 @@
-name: pr_to_main.yml
+name: Build and Test
 on:
   push:
 jobs:
@@ -6,7 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
-      - run: echo "Test_Compilation was automatically triggered by a ${{ github.event_name }} event."
-
-
+        uses: actions/checkout@v7
+      - name: Build the project
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_VTK_OUTPUT=OFF -DBUILD_DOC_DOXYGEN=OFF
+          cmake --build build -j
+      - name: Execute the tests
+        run: ctest --test-dir build --output-on-failure
