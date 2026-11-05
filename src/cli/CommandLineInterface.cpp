@@ -71,9 +71,8 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     SimulationParameters params;
 
     const auto fail = [&](const std::string &message) -> std::optional<SimulationParameters> {
-        // Used error here due to the original error function
-        const std::string argument = argv[0];
-        spdlog::error(argument + ": " + message + '\n' + "Try '" + argument + " --help' for more information.\n");
+        spdlog::error("{}: {}", argv[0], message);
+        spdlog::info("Try '{} --help' for more information.", argv[0]);
         return std::nullopt;
     };
 
@@ -120,8 +119,8 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.vtk_output = true;
 #else
                 return fail(
-                    "unsupported flag -v set. VTK is not available to the program.\nTo enable the VTK output "
-                    "reconfigure with the ENABLE_VTK_OUTPUT option turned on.");
+                    "unsupported flag -v set. VTK is not available to the program (reconfigure with "
+                    "-DENABLE_VTK_OUTPUT=ON to enable)");
 #endif
                 break;
             }
@@ -148,10 +147,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     }
 
     if (params.delta_t > params.t_end) {
-        // Used error here due to the original error function
-        std::cerr << "Warning: delta_t (" << params.delta_t << ") is larger than t_end (" << params.t_end << ").\n";
-        spdlog::error("Warning: delta_t (" + std::to_string(params.delta_t) + ") is larger than t_end (" +
-                      std::to_string(params.t_end) + ").)");
+        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
     }
 
     return params;

@@ -32,8 +32,8 @@ instantiation are separated and the testing framework can make direct use of all
 * `PairwiseForce` is an abstract class defining an interface for forces acting antisymmetrically and pairwise on
   particles.
     * It only requires the `calculateForce` method between two particles.
-    * Currently `Gravity` implementing gravitational attraction and `LennardJones` implementing the Lennard-Jones force 
-  are valid options.
+    * Currently `Gravity` implementing gravitational attraction and `LennardJones` implementing the Lennard-Jones force
+      are valid options.
 * An `ExternalForce` interface to consider forces acting on each particle individually is possible and would follow a
   similar pattern.
 * Combining multiple forces is also possible in theory. As long as the `calculateForce` signature is maintained multiple
@@ -114,8 +114,8 @@ rm -rf build
 Run the final executable inside `build/` to keep the repo clean and all output files contained in `build/`.
 
 ```bash
-./MolSim ../input/eingabe-sonne.txt
-./MolSim -d 0.014 -e 1000 ../input/eingabe-sonne.txt
+./MolSim ../input/Assignment2_params
+./MolSim ../input/Assignment2_params -v -o 50 -e 5 -d 0.0002
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.

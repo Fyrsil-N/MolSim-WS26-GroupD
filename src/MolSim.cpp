@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
 #ifdef ENABLE_VTK_OUTPUT
         std::string out_name("MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
-#else  // safe guard should never be reached
-       // Used error here due to the original error function
-        spdlog::error("Invalid Flag -v set. VTK is not available to this build.") return EXIT_FAILURE;
+#else  // safe guard, should never be reached (cli::parseArguments already rejects -v)
+        spdlog::error("invalid flag -v set: VTK output is not available in this build");
+        return EXIT_FAILURE;
 #endif
     } else {
         std::string out_name("MD_XYZ");
@@ -44,8 +44,7 @@ int main(int argc, char *argv[]) {
 
     // instantiate and start the Simulator
     Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, std::move(output_writers)};
-    // Used info here, since this information is not critical to the user
-    spdlog::info("Hello from MolSim for PSE!\nSimulating ... ");
+    spdlog::info("Hello from MolSim for PSE! Simulating ...");
     simulator.runSimulation();
     spdlog::info("Simulation complete. Terminating...");
     return EXIT_SUCCESS;

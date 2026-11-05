@@ -25,8 +25,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
     std::ifstream input_file(config_filename);
 
     if (!input_file.is_open()) {
-        // Used error here due to the original error function
-        spdlog::error("Error: could not open file " + config_filename);
+        spdlog::error("could not open file '{}'", config_filename);
         exit(-1);
     }
     std::string tmp_string;
@@ -36,9 +35,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
         if (tmp_string.empty() || tmp_string.at(0) == '#') continue;
 
         if (tmp_string != "cuboid:") {
-            // Used error here due to the original error function
-            spdlog::error("Error: Form '" + tmp_string + "' unknown.");
-            continue;
+            spdlog::error("'{}': unknown form '{}'", config_filename, tmp_string);
+            exit(-1);
         }
 
         std::array<size_t, 3> particle_count{};
@@ -48,8 +46,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
 
         for (int i = 0; i < 5; ++i) {
             if (!input_file.good() || input_file.eof()) {
-                // Used error here due to the original error function
-                spdlog::error("Error reading file: " + config_filename);
+                spdlog::error("'{}': eof reached unexpectedly reading cuboid parameter {} of 5", config_filename,
+                              i + 1);
                 exit(-1);
             }
 
@@ -81,9 +79,8 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                 case 4:
                     particle_mass = stod(tmp_string);
                     break;
-                default:
-                    // Used error here due to the original error function
-                    spdlog::error("How did you even reach this???");
+                default:  // unreachable: i is always in [0, 4]
+                    spdlog::critical("internal error: unexpected parameter {}", i);
                     abort();
             }
         }

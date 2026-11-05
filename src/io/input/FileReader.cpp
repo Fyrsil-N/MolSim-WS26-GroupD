@@ -31,27 +31,23 @@ void FileReader::readInParticles(ParticleContainer &particles) {
     std::string tmp_string;
 
     if (!input_file.is_open()) {
-        // Used error here due to the original error function
-        spdlog::error("Error: could not open file " + input_filename);
+        spdlog::error("could not open file '{}'", input_filename);
         exit(-1);
     }
 
     getline(input_file, tmp_string);
-    // Used info here, since this information is not critical to the user
-    spdlog::info("Read line: " + tmp_string);
+    spdlog::trace("Read line: {}", tmp_string);
 
     while (tmp_string.empty() or tmp_string[0] == '#') {
         getline(input_file, tmp_string);
-        // Used info here, since this information is not critical to the user
-        spdlog::info("Read line: " + tmp_string);
+        spdlog::trace("Read line: {}", tmp_string);
     }
 
     std::istringstream numstream(tmp_string);
     numstream >> num_particles;
-    // Used info here, since this information is not critical to the user
-    spdlog::info("Reading " + std::to_string(num_particles) + ".");
+    spdlog::debug("Reading {} particles from '{}'", num_particles, input_filename);
     getline(input_file, tmp_string);
-    spdlog::info("Read line: " + tmp_string);
+    spdlog::trace("Read line: {}", tmp_string);
     // reserve the space needed before hand to reduce moves of the ParticleContainer
     if (num_particles > 0) {
         particles.reserve(particles.size() + num_particles);
@@ -67,16 +63,14 @@ void FileReader::readInParticles(ParticleContainer &particles) {
             datastream >> vj;
         }
         if (datastream.eof()) {
-            // Used error here due to the original error function
-            spdlog::error("Error reading file: eof reached unexpectedly reading from line " + std::to_string(i));
+            spdlog::error("'{}': eof reached unexpectedly reading line {} of {}", input_filename, i + 1, num_particles);
             exit(-1);
         }
         datastream >> m;
         particles.emplaceBack(x, v, m);
 
         getline(input_file, tmp_string);
-        // Used info here, since this information is not critical to the user
-        spdlog::info("Read line: " + tmp_string);
+        spdlog::trace("Read line: {}", tmp_string);
     }
 }
 
