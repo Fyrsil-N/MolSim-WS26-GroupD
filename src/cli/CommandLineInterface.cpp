@@ -29,6 +29,7 @@ void printHelp(const char *program_name) {
               << "  -e, --t-end <double>           end time (default: " << defaults.t_end << ")\n"
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
+              << "  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)\n"
 #ifdef ENABLE_VTK_OUTPUT
               << "  -v, --vtk                      output simulation files using vtk (default: xyz)\n"
 #else
@@ -64,6 +65,20 @@ std::optional<int> parseInt(std::string_view str) {
     }
     return value;
 }
+
+/**
+ * Parse the given log level and verify it is a proper log level.
+ * @param str log level string provided by the user
+ * @return valid and verified log level enum or a std::nullopt
+ */
+std::optional<spdlog::level::level_enum> parseLogLevel(std::string_view str) {
+    spdlog::level::level_enum level = spdlog::level::from_str(std::string(str));
+    // a wrong string results in level = off so check if the string was actually off or if its an error.
+    if (level == spdlog::level::off && str != "off") {
+        return std::nullopt;
+    }
+    return level;
+}
 }  // namespace
 
 namespace cli {
@@ -80,6 +95,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"delta-t", required_argument, nullptr, 'd'},
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
+        {"log-level", required_argument, nullptr, 'l'},
         {"vtk", no_argument, nullptr, 'v'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
@@ -88,7 +104,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:vh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -112,6 +128,15 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                     return fail("invalid output interval '" + std::string(optarg) + "', expected an integer >= 1");
                 }
                 params.output_interval = *value;
+                break;
+            }
+            case 'l': {
+                const auto value = parseLogLevel(optarg);
+                if (!value) {
+                    return fail("invalid log-level '" + std::string(optarg) +
+                                "', expected one of [trace, debug, info, warn, err, critical, off]");
+                }
+                params.log_level = *value;
                 break;
             }
             case 'v': {

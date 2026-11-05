@@ -127,6 +127,7 @@ Options:
   -d, --delta-t <double>         time step size (default: 0.014)
   -e, --t-end <double>           end time (default: 1000)
   -o, --output-interval <int>    output is written every N iterations (default: 10)
+  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
   -v, --vtk                      output simulation files using vtk (default: xyz)
   -h, --help                     print this help and exit
 ```

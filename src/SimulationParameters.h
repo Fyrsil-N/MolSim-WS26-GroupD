@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <spdlog/spdlog.h>
+
 #include <string>
 
 /**
@@ -33,4 +35,9 @@ struct SimulationParameters {
      * VTK output flag (xyz if false)
      */
     bool vtk_output = false;
+
+    /**
+     * log level for the execution (trace, debug, info, warn, err, critical, off)
+     */
+    spdlog::level::level_enum log_level = spdlog::level::info;
 };
