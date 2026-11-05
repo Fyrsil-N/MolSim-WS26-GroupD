@@ -4,6 +4,8 @@
 
 #include "io/input/ParticleCreator.h"
 
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -11,7 +13,6 @@
 #include <iostream>
 #include <utility>
 
-#include "../../../cmake-build-debug/_deps/spdlog-src/include/spdlog/spdlog.h"
 #include "ParticleContainer.h"
 #include "utils/ArrayUtils.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
@@ -24,7 +25,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
     std::ifstream input_file(config_filename);
 
     if (!input_file.is_open()) {
-        //Used error here due to the original error function
+        // Used error here due to the original error function
         spdlog::error("Error: could not open file " + config_filename);
         exit(-1);
     }
@@ -35,7 +36,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
         if (tmp_string.empty() || tmp_string.at(0) == '#') continue;
 
         if (tmp_string != "cuboid:") {
-            //Used error here due to the original error function
+            // Used error here due to the original error function
             spdlog::error("Error: Form '" + tmp_string + "' unknown.");
             continue;
         }
@@ -47,7 +48,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
 
         for (int i = 0; i < 5; ++i) {
             if (!input_file.good() || input_file.eof()) {
-                //Used error here due to the original error function
+                // Used error here due to the original error function
                 spdlog::error("Error reading file: " + config_filename);
                 exit(-1);
             }
@@ -81,7 +82,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                     particle_mass = stod(tmp_string);
                     break;
                 default:
-                    //Used error here due to the original error function
+                    // Used error here due to the original error function
                     spdlog::error("How did you even reach this???");
                     abort();
             }
@@ -95,7 +96,7 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
                                                  start_coordinates.at(1) + static_cast<double>(y) * spacing,
                                                  start_coordinates.at(2) + static_cast<double>(z) * spacing};
                     particles.emplaceBack(pos, total_velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
-                    particle_mass);
+                                          particle_mass);
                 }
             }
         }

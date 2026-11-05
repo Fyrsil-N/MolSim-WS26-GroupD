@@ -5,6 +5,7 @@
 #include "cli/CommandLineInterface.h"
 
 #include <getopt.h>
+#include <spdlog/spdlog.h>
 
 #include <charconv>
 #include <cmath>
@@ -14,8 +15,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-
-#include "../../cmake-build-debug/_deps/spdlog-src/include/spdlog/spdlog.h"
 
 namespace {
 /**
@@ -72,7 +71,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     SimulationParameters params;
 
     const auto fail = [&](const std::string &message) -> std::optional<SimulationParameters> {
-        //Used error here due to the original error function
+        // Used error here due to the original error function
         const std::string argument = argv[0];
         spdlog::error(argument + ": " + message + '\n' + "Try '" + argument + " --help' for more information.\n");
         return std::nullopt;
@@ -149,9 +148,10 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     }
 
     if (params.delta_t > params.t_end) {
-        //Used error here due to the original error function
+        // Used error here due to the original error function
         std::cerr << "Warning: delta_t (" << params.delta_t << ") is larger than t_end (" << params.t_end << ").\n";
-        spdlog::error("Warning: delta_t (" + std::to_string(params.delta_t) + ") is larger than t_end (" + std::to_string(params.t_end) + ").)");
+        spdlog::error("Warning: delta_t (" + std::to_string(params.delta_t) + ") is larger than t_end (" +
+                      std::to_string(params.t_end) + ").)");
     }
 
     return params;
