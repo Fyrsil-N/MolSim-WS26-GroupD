@@ -66,6 +66,7 @@ class ParticleContainer {
      */
     template <class F>
     void forEachPair(const F &f) {
+        #pragma omp parallel for collapse(2)
         for (std::size_t i = 0; i < particles.size(); ++i) {
             for (std::size_t j = i + 1; j < particles.size(); ++j) {
                 f(particles.at(i), particles.at(j));
