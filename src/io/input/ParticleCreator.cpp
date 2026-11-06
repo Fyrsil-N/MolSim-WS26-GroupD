@@ -5,6 +5,7 @@
 #include "io/input/ParticleCreator.h"
 
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -68,11 +69,9 @@ void ParticleCreator::parseCuboid(std::ifstream &input_file, ParticleContainer &
 void ParticleCreator::parseEllipsoid(std::ifstream &input_file, ParticleContainer &particles) {
     ShapeParameters params = parseParameters(input_file);
 
-    (void) params;
-    (void) particles;
+    (void)params;
+    (void)particles;
     // NOT YET IMPLEMENTED BUT FUN
-
-
 
     spdlog::error("Error: unknown form ellipsoid:");
     exit(-1);

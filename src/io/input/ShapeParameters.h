@@ -38,6 +38,5 @@ struct ShapeParameters {
     /**
      * type of each particle
      */
-int type = 0;
+    int type = 0;
 };
-

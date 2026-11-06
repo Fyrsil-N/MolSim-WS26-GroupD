@@ -61,7 +61,6 @@ class ParticleCreator : InputReader {
      * @param line string line containing the needed coordinates in a string format
      */
     static void convertStringToArray(std::array<double, 3> &array_to_fill, const std::string &line);
-
 };
 }  // namespace io
 

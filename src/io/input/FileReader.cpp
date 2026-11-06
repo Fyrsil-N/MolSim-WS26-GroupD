@@ -8,6 +8,7 @@
 #include "io/input/FileReader.h"
 
 #include <spdlog/spdlog.h>
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>

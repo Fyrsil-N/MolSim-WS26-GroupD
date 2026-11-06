@@ -50,7 +50,7 @@ void Simulator::runSimulation() {
 
     int iteration = 0;
 
-    int total_iterations = static_cast<int>(t_end/delta_t);
+    int total_iterations = static_cast<int>(t_end / delta_t);
 
     spdlog::info("Simulating now for {0:d} iterations.", total_iterations);
 
@@ -75,7 +75,7 @@ void Simulator::runSimulation() {
             writer->onStep(particles, iteration, current_time);
         }
 
-#if CMAKE_BUILD_TYPE == TRUE // The need for speed
+#if CMAKE_BUILD_TYPE == TRUE  // The need for speed
         progress = 100 * iteration / total_iterations;
         if (progress >= old_progress + 10) {
             old_progress = progress;
