@@ -57,7 +57,8 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::LennardJones>();
 
     // instantiate and start the Simulator
-    Simulator simulator{particles, std::move(force), params->delta_t, params->t_end, params->omp_enabled, std::move(output_writers)};
+    Simulator simulator{particles,     std::move(force),    params->delta_t,
+                        params->t_end, params->omp_enabled, std::move(output_writers)};
     spdlog::info("Hello from MolSim for PSE! Simulating ...");
     simulator.runSimulation();
     spdlog::info("Simulation complete. Terminating...");

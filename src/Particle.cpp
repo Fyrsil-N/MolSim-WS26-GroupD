@@ -54,9 +54,7 @@ void Particle::resetF() {
     f = std::array<double, 3>{0., 0., 0.};
 }
 
-void Particle::addToF(const std::array<double, 3> &delta_f) {
-    f = f + delta_f;
-}
+void Particle::addToF(const std::array<double, 3> &delta_f) { f = f + delta_f; }
 
 std::string Particle::toString() const {
     std::stringstream stream;

@@ -8,8 +8,7 @@
 #include "utils/ArrayUtils.h"
 
 Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::PairwiseForce> pairwise_force_arg,
-                     double delta_t_arg, double t_end_arg,
-                     bool parallel_execution_arg,
+                     double delta_t_arg, double t_end_arg, bool parallel_execution_arg,
                      std::vector<std::unique_ptr<io::OutputWriter>> output_writers_arg)
     : particles(particles_arg),
       pairwise_force(std::move(pairwise_force_arg)),
