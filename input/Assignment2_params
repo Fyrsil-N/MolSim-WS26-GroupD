@@ -9,10 +9,13 @@ cuboid:
 1
 #mass per particle
 1
+#type (optional)
+0
 
 cuboid:
 15  15  0
 8   8   1
 0  -10  0
+1
 1
 1

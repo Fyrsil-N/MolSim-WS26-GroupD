@@ -7,6 +7,7 @@
 
 #include "InputReader.h"
 #include "ParticleContainer.h"
+#include "ShapeParameters.h"
 
 namespace io {
 /**
@@ -34,19 +35,33 @@ class ParticleCreator : InputReader {
     void readInParticles(ParticleContainer &particles) override;
 
     /**
+     * Generates a cuboid based on given parameters.
+     * @param input_file the file input stream to read the parameters from
+     * @param particles ParticleContainer to store all the newly generated particles
+     */
+    static void parseCuboid(std::ifstream &input_file, ParticleContainer &particles);
+
+    /**
+     * Generates an ellipsoid based on given parameters.
+     * @param input_file the file input stream to read the parameters from
+     * @param particles ParticleContainer to store all the newly generated particles
+     */
+    static void parseEllipsoid(std::ifstream &input_file, ParticleContainer &particles);
+
+    /**
+     * Parses all necessary parameters to create a shape from a given file input stream
+     * @param input_file the file input stream to read the parameters from
+     * @return a ShapeParameters struct containing all necessary information for generating the desired shape
+     */
+    static ShapeParameters parseParameters(std::ifstream &input_file);
+
+    /**
      * Takes a line of coordinates in the form of 'x y z' and puts them into the given array.
      * @param array_to_fill Array to put the given coordinates into
      * @param line string line containing the needed coordinates in a string format
      */
     static void convertStringToArray(std::array<double, 3> &array_to_fill, const std::string &line);
 
-    /**
-     * Takes two double arrays and normalizes them by putting the smallest values of the same index into a and the
-     * biggest into b
-     * @param a array that should contain the smaller values
-     * @param b array that should contain the bigger values
-     */
-    static void normalizeCoordinateArrays(std::array<double, 3> &a, std::array<double, 3> &b);
 };
 }  // namespace io
 

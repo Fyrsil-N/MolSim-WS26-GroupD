@@ -5,7 +5,6 @@
 #include "io/input/ParticleCreator.h"
 
 #include <spdlog/spdlog.h>
-
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -34,70 +33,112 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
 
         if (tmp_string.empty() || tmp_string.at(0) == '#') continue;
 
-        if (tmp_string != "cuboid:") {
-            spdlog::error("'{}': unknown form '{}'", config_filename, tmp_string);
-            exit(-1);
+        if (tmp_string == "cuboid:") {
+            parseCuboid(input_file, particles);
+            continue;
         }
 
-        std::array<size_t, 3> particle_count{};
-        std::array<double, 3> start_coordinates{}, particle_count_in{}, total_velocity{};
-        double spacing = 0;
-        double particle_mass = 0;
-
-        for (int i = 0; i < 5; ++i) {
-            if (!input_file.good() || input_file.eof()) {
-                spdlog::error("'{}': eof reached unexpectedly reading cuboid parameter {} of 5", config_filename,
-                              i + 1);
-                exit(-1);
-            }
-
-            // Retrieve next line
-            getline(input_file, tmp_string);
-
-            // ignore comments and empty lines
-            if (tmp_string.empty() || tmp_string.at(0) == '#') {
-                i--;
-                continue;
-            }
-
-            switch (i) {
-                case 0:
-                    convertStringToArray(start_coordinates, tmp_string);
-                    break;
-                case 1:
-                    convertStringToArray(particle_count_in, tmp_string);
-                    for (int j = 0; j < 3; ++j) {
-                        particle_count.at(j) = static_cast<size_t>(particle_count_in.at(j));
-                    }
-                    break;
-                case 2:
-                    convertStringToArray(total_velocity, tmp_string);
-                    break;
-                case 3:
-                    spacing = stod(tmp_string);
-                    break;
-                case 4:
-                    particle_mass = stod(tmp_string);
-                    break;
-                default:  // unreachable: i is always in [0, 4]
-                    spdlog::critical("internal error: unexpected parameter {}", i);
-                    abort();
-            }
+        if (tmp_string == "ellipsoid:") {
+            parseEllipsoid(input_file, particles);
+            continue;
         }
 
-        particles.reserve(particle_count.at(0) * particle_count.at(1) * particle_count.at(2));
-        for (unsigned int x = 0; x < particle_count.at(0); ++x) {
-            for (unsigned int y = 0; y < particle_count.at(1); ++y) {
-                for (unsigned int z = 0; z < particle_count.at(2); ++z) {
-                    std::array<double, 3> pos = {start_coordinates.at(0) + static_cast<double>(x) * spacing,
-                                                 start_coordinates.at(1) + static_cast<double>(y) * spacing,
-                                                 start_coordinates.at(2) + static_cast<double>(z) * spacing};
-                    particles.emplaceBack(pos, total_velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
-                                          particle_mass);
-                }
+        spdlog::error("'{}': unknown form '{}'", config_filename, tmp_string);
+        exit(-1);
+    }
+}
+
+void ParticleCreator::parseCuboid(std::ifstream &input_file, ParticleContainer &particles) {
+    ShapeParameters params = parseParameters(input_file);
+
+    particles.reserve(params.particle_dims.at(0) * params.particle_dims.at(1) * params.particle_dims.at(2));
+    for (unsigned int x = 0; x < params.particle_dims.at(0); ++x) {
+        for (unsigned int y = 0; y < params.particle_dims.at(1); ++y) {
+            for (unsigned int z = 0; z < params.particle_dims.at(2); ++z) {
+                std::array<double, 3> pos = {params.anchor_point.at(0) + static_cast<double>(x) * params.spacing,
+                                             params.anchor_point.at(1) + static_cast<double>(y) * params.spacing,
+                                             params.anchor_point.at(2) + static_cast<double>(z) * params.spacing};
+                particles.emplaceBack(pos, params.velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
+                                      params.particle_mass, params.type);
             }
         }
     }
+}
+
+void ParticleCreator::parseEllipsoid(std::ifstream &input_file, ParticleContainer &particles) {
+    ShapeParameters params = parseParameters(input_file);
+
+    (void) params;
+    (void) particles;
+    // NOT YET IMPLEMENTED BUT FUN
+
+
+
+    spdlog::error("Error: unknown form ellipsoid:");
+    exit(-1);
+}
+
+ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
+    ShapeParameters params;
+
+    std::string tmp_string;
+    std::array<double, 3> particle_count_in{};
+
+    for (int i = 0; i < 6; ++i) {
+        if (!input_file.good() || input_file.eof()) {
+            if (i < 3) {
+                spdlog::error("Error: eof reached unexpectedly reading shape parameter {}", i + 1);
+                exit(-1);
+            }
+            break;
+        }
+
+        // Retrieve next line
+        getline(input_file, tmp_string);
+
+        // ignore comments and empty lines
+        if (tmp_string.at(0) == '#') {
+            i--;
+            continue;
+        }
+
+        if (tmp_string.empty()) {
+            if (i < 3) {
+                spdlog::error("Error: End of definition reached unexpectedly reading shape parameter {}", i + 1);
+                exit(-1);
+            }
+            break;
+        }
+
+        switch (i) {
+            case 0:
+                convertStringToArray(params.anchor_point, tmp_string);
+                break;
+            case 1:
+                convertStringToArray(particle_count_in, tmp_string);
+                for (int j = 0; j < 3; ++j) {
+                    params.particle_dims.at(j) = static_cast<size_t>(particle_count_in.at(j));
+                }
+                break;
+            case 2:
+                convertStringToArray(params.velocity, tmp_string);
+                break;
+            case 3:
+                params.spacing = stod(tmp_string);
+                break;
+            case 4:
+                params.particle_mass = stod(tmp_string);
+                break;
+            case 5:
+                params.type = stoi(tmp_string);
+                break;
+            default:  // unreachable: i is always in [0, 5]
+                spdlog::critical("Internal Error: unexpected parameter {}", i);
+                abort();
+        }
+    }
+
+    return params;
 }
 
 // Function to convert coordinates in a string in the form "x y z" to a double array

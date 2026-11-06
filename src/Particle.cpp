@@ -8,7 +8,6 @@
 #include "Particle.h"
 
 #include <spdlog/spdlog.h>
-
 #include <iostream>
 
 #include "utils/ArrayUtils.h"

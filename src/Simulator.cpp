@@ -4,6 +4,7 @@
 
 #include "Simulator.h"
 
+#include "spdlog/spdlog.h"
 #include "utils/ArrayUtils.h"
 
 Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::PairwiseForce> pairwise_force_arg,
@@ -49,6 +50,13 @@ void Simulator::runSimulation() {
 
     int iteration = 0;
 
+    int total_iterations = static_cast<int>(t_end/delta_t);
+
+    spdlog::info("Simulating now for {0:d} iterations.", total_iterations);
+
+    u_int8_t old_progress = 0;
+    u_int8_t progress = 0;
+
     // call updateF() once before the loop to set a real starting force and not 0 for the first iteration.
     updateF();
     // record the initial state of the simulation regardless of output interval
@@ -56,17 +64,24 @@ void Simulator::runSimulation() {
         writer->onStep(particles, iteration, current_time);
     }
 
-    while (current_time < t_end) {
+    for (iteration = 1; iteration <= total_iterations; iteration++) {
         updateX();
         updateF();
         updateV();
 
-        iteration++;
         current_time = iteration * delta_t;
 
         for (auto &writer : output_writers) {
             writer->onStep(particles, iteration, current_time);
         }
+
+#if CMAKE_BUILD_TYPE == TRUE // The need for speed
+        progress = 100 * iteration / total_iterations;
+        if (progress >= old_progress + 10) {
+            old_progress = progress;
+            spdlog::info("{0:d}%", progress);
+        }
+#endif
     }
 
     for (auto &writer : output_writers) {
