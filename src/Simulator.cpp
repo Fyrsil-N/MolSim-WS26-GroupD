@@ -9,11 +9,13 @@
 
 Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::PairwiseForce> pairwise_force_arg,
                      double delta_t_arg, double t_end_arg,
+                     bool parallel_execution_arg,
                      std::vector<std::unique_ptr<io::OutputWriter>> output_writers_arg)
     : particles(particles_arg),
       pairwise_force(std::move(pairwise_force_arg)),
       delta_t(delta_t_arg),
       t_end(t_end_arg),
+      parallel_execution_enabled(parallel_execution_arg),
       output_writers(std::move(output_writers_arg)) {}
 
 void Simulator::updateF() {
@@ -23,12 +25,11 @@ void Simulator::updateF() {
     }
     // compute all pairwise forces and add them to each particles force
     // optimization: set both particles force at the same time (newtons third law)
-    auto helper = [this](Particle &p1, Particle &p2) {
-        auto force = pairwise_force->calculateForce(p1, p2);
-        p1.addToF(force);
-        p2.addToF((-1) * force);
+    // The force calculation was moved to the ParticleContainer Header to allow for parallel force calculation
+    auto helper = [this](const Particle &p1, const Particle &p2) -> std::array<double, 3> {
+        return pairwise_force->calculateForce(p1, p2);
     };
-    particles.forEachPair(helper);
+    particles.forEachPair(helper, parallel_execution_enabled);
 }
 
 void Simulator::updateX() {

@@ -55,13 +55,7 @@ void Particle::resetF() {
 }
 
 void Particle::addToF(const std::array<double, 3> &delta_f) {
-#pragma omp atomic
-    f.at(0) = f.at(0) + delta_f.at(0);
-#pragma omp atomic
-    f.at(1) = f.at(1) + delta_f.at(1);
-#pragma omp atomic
-    f.at(2) = f.at(2) + delta_f.at(2);
-    // f = f + delta_f;
+    f = f + delta_f;
 }
 
 std::string Particle::toString() const {

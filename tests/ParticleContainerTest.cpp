@@ -69,8 +69,8 @@ TEST_F(TestParticleContainer, forEachPairTest) {
     // compute the number of unique pairs
     std::size_t expected_number_of_pairs = container.size() * (container.size() - 1) / 2;
 
-    auto helper = [&function_calls, &pairs](Particle &p1, Particle &p2) {
-#pragma omp critical
+    auto helper = [&function_calls, &pairs](Particle &p1, Particle &p2) -> std::array<double, 3>{
+//#pragma omp critical
         {
             function_calls++;
             // make sure we never call on equal particles
@@ -81,9 +81,10 @@ TEST_F(TestParticleContainer, forEachPairTest) {
             } else {
                 pairs.emplace(p2.getType(), p1.getType());
             }
+            return {0.0, 0.0, 0.0};
         }
     };
-    container.forEachPair(helper);
+    container.forEachPair(helper, false);
 
     ASSERT_EQ(function_calls, expected_number_of_pairs);
     ASSERT_EQ(pairs.size(), expected_number_of_pairs);

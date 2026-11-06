@@ -97,6 +97,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"output-interval", required_argument, nullptr, 'o'},
         {"log-level", required_argument, nullptr, 'l'},
         {"vtk", no_argument, nullptr, 'v'},
+        {"parallel", no_argument, nullptr, 'p'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -104,7 +105,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vph", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -147,6 +148,10 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                     "unsupported flag -v set. VTK is not available to the program (reconfigure with "
                     "-DENABLE_VTK_OUTPUT=ON to enable)");
 #endif
+                break;
+            }
+            case 'p': {
+                params.omp_enabled = true;
                 break;
             }
             case 'h': {

@@ -129,6 +129,7 @@ Options:
   -o, --output-interval <int>    output is written every N iterations (default: 10)
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
   -v, --vtk                      output simulation files using vtk (default: xyz)
+  -p, --parallel                 activate the parallel calculation of the forces (default: deactivated)
   -h, --help                     print this help and exit
 ```
 

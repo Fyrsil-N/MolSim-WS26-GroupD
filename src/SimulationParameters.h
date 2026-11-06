@@ -37,6 +37,11 @@ struct SimulationParameters {
     bool vtk_output = false;
 
     /**
+     * OpenMP activation flag (parallel execution if true)
+     */
+    bool omp_enabled = false;
+
+    /**
      * log level for the execution (trace, debug, info, warn, err, critical, off)
      */
     spdlog::level::level_enum log_level = spdlog::level::info;
