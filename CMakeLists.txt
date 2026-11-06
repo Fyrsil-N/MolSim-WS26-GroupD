@@ -48,10 +48,7 @@ add_library(MolSimCore ${LIB_SRC})
 target_include_directories(MolSimCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(MolSimCore PUBLIC spdlog::spdlog)
 target_compile_options(MolSimCore PRIVATE ${COMPILE_FLAGS})
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(MolSimCore PUBLIC OpenMP::OpenMP_CXX)
-endif()
+
 
 # build the actual executable
 add_executable(MolSim ${CMAKE_CURRENT_SOURCE_DIR}/src/MolSim.cpp)

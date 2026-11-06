@@ -70,14 +70,17 @@ TEST_F(TestParticleContainer, forEachPairTest) {
     std::size_t expected_number_of_pairs = container.size() * (container.size() - 1) / 2;
 
     auto helper = [&function_calls, &pairs](Particle &p1, Particle &p2) {
-        function_calls++;
-        // make sure we never call on equal particles
-        EXPECT_NE(&p1, &p2);
-        // remember each pair we visited (no duplicates)
-        if (p1.getType() < p2.getType()) {
-            pairs.emplace(p1.getType(), p2.getType());
-        } else {
-            pairs.emplace(p2.getType(), p1.getType());
+        #pragma omp critical
+        {
+            function_calls++;
+            // make sure we never call on equal particles
+            EXPECT_NE(&p1, &p2);
+            // remember each pair we visited (no duplicates)
+            if (p1.getType() < p2.getType()) {
+                pairs.emplace(p1.getType(), p2.getType());
+            } else {
+                pairs.emplace(p2.getType(), p1.getType());
+            }
         }
     };
     container.forEachPair(helper);
