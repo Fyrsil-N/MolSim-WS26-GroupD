@@ -1,5 +1,7 @@
 #include <spdlog/spdlog.h>
 
+#include <filesystem>
+
 #include "ParticleContainer.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
@@ -28,16 +30,26 @@ int main(int argc, char *argv[]) {
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
+
+    std::filesystem::path out_dir("./out_0");
+    for (int i = 0; std::filesystem::exists(out_dir); ++i) {
+        out_dir = std::filesystem::path("./out_" + std::to_string(i));
+        spdlog::info("{0:d}", i);
+    }
+
+    std::filesystem::create_directory(out_dir);
+    spdlog::info("Outputting to {}.", out_dir.string());
+
     if (params->vtk_output) {
 #ifdef ENABLE_VTK_OUTPUT
-        std::string out_name("MD_vtk");
+        std::string out_name(out_dir.string() + "/MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params->output_interval, out_name));
 #else  // safe guard, should never be reached (cli::parseArguments already rejects -v)
         spdlog::error("invalid flag -v set: VTK output is not available in this build");
         return EXIT_FAILURE;
 #endif
     } else {
-        std::string out_name("MD_XYZ");
+        std::string out_name(out_dir.string() + "/MD_XYZ");
         output_writers.push_back(std::make_unique<io::XYZWriter>(params->output_interval, out_name));
     }
 
