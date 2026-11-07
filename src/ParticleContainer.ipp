@@ -1,16 +1,25 @@
-//Header extension of  ParticleContainer.h to keep the original Header file clean
+// Header extension of  ParticleContainer.h to keep the original Header file clean
 #pragma once
 
+#ifdef ENABLE_OPENMP
 #include <omp.h>
+#endif
+
+#include <array>
 #include <vector>
+
 #include "Particle.h"
 #include "utils/ArrayUtils.h"
+
 template <class F>
-void ParticleContainer::forEachPair(const F &f, const bool parallel_calculation) {
+void ParticleContainer::forEachPair(const F &f, [[maybe_unused]] const bool parallel_calculation) {
+    const std::size_t n = particles.size();
+
+#ifdef ENABLE_OPENMP
     if (parallel_calculation) {
         const int nthreads = omp_get_max_threads();
-        const std::size_t n = particles.size();
-        std::vector<std::vector<std::array<double, 3>>> thread_results(nthreads, std::vector<std::array<double, 3>>(n, {0.0, 0.0, 0.0}));
+        std::vector<std::vector<std::array<double, 3>>> thread_results(
+            nthreads, std::vector<std::array<double, 3>>(n, {0.0, 0.0, 0.0}));
 #pragma omp parallel
         {
             auto &local = thread_results.at(omp_get_thread_num());
@@ -29,15 +38,15 @@ void ParticleContainer::forEachPair(const F &f, const bool parallel_calculation)
                 particles.at(j).addToF(thread_results.at(t).at(j));
             }
         }
+        return;
     }
-    else {
-        const std::size_t n = particles.size();
-        for (std::size_t i = 0; i < n; ++i) {
-            for (std::size_t j = i + 1; j < n; ++j) {
-                std::array<double, 3> force = f(particles.at(i), particles.at(j));
-                particles.at(i).addToF(force);
-                particles.at(j).addToF((-1) * force);
-            }
+#endif
+
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = i + 1; j < n; ++j) {
+            std::array<double, 3> force = f(particles.at(i), particles.at(j));
+            particles.at(i).addToF(force);
+            particles.at(j).addToF((-1) * force);
         }
     }
 }

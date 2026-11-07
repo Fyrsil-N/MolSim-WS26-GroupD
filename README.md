@@ -94,6 +94,8 @@ Configuration flags for different builds (passed to cmake):
 * `-DCMAKE_BUILD_TYPE=Debug` for a debug build (default: `Release`)
 * `-DENABLE_VTK_OUTPUT=OFF` to build without VTK output. Required on machines without VTK installed, otherwise the
   configuration fails. (default: `ON`)
+* `-DENABLE_OPENMP=OFF` to build without OpenMP for parallelization. Required on machines without OpenMp installed,
+  otherwise the configuration fails. (default: `ON`)
 * `-DBUILD_DOC_DOXYGEN=OFF` to disable the doc_doxygen target. (default: `ON`)
 * `-DUSE_GOOGLETEST=OFF` for google test to not be built. Speeds up compilation. (default: `ON`)
 
@@ -129,12 +131,14 @@ Options:
   -o, --output-interval <int>    output is written every N iterations (default: 10)
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
   -v, --vtk                      output simulation files using vtk (default: xyz)
-  -p, --parallel                 activate the parallel calculation of the forces (default: deactivated)
+  -p, --parallel                 calculate the forces in parallel (default: serial)
   -h, --help                     print this help and exit
 ```
 
-Note: `-v` is only available if the project was configured with `ENABLE_VTK_OUTPUT=ON` and produces an error otherwise.
-The help message shows whether the current build supports it.
+Note `-v` and `-p` are not always available which is also shown in the help message:
+
+* `-v` is only available if the project was configured with `ENABLE_VTK_OUTPUT=ON` and produces an error otherwise.
+* `-p` is only available if the project was configured with `ENABLE_OPENMP=ON` and produces an error otherwise.
 
 ### Doxygen Documentation
 

@@ -35,6 +35,11 @@ void printHelp(const char *program_name) {
 #else
               << "  -v, --vtk                      output simulation files using vtk (unavailable in this build)\n"
 #endif
+#ifdef ENABLE_OPENMP
+              << "  -p, --parallel                 calculate the forces in parallel (default: serial)\n"
+#else
+              << "  -p, --parallel                 calculate the forces in parallel (unavailable in this build)\n"
+#endif
               << "  -h, --help                     print this help and exit\n";
 }
 
@@ -151,7 +156,13 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 break;
             }
             case 'p': {
+#ifdef ENABLE_OPENMP
                 params.omp_enabled = true;
+#else
+                return fail(
+                    "unsupported flag -p set. OpenMP is not available to the program (reconfigure with "
+                    "-DENABLE_OPENMP=ON to enable)");
+#endif
                 break;
             }
             case 'h': {

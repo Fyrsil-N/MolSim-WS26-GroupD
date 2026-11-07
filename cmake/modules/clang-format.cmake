@@ -8,6 +8,7 @@ if (CLANG_FORMAT)
             "tests/*.h"
             "src/*.cpp"
             "src/*.h"
+            "src/*.ipp"
     )
 
     # Remove any files in build directories

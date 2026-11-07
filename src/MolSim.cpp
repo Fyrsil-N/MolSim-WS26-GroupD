@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
     std::filesystem::path out_dir("./out_0");
     for (int i = 0; std::filesystem::exists(out_dir); ++i) {
         out_dir = std::filesystem::path("./out_" + std::to_string(i));
-        spdlog::info("{0:d}", i);
     }
 
     std::filesystem::create_directory(out_dir);

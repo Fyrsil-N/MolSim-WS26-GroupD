@@ -63,7 +63,7 @@ class ParticleContainer {
     /**
      * Iterate over every unique pair of particles in the container and apply f(p_i, p_j).
      * @param f Callable taking two Particle references
-     * @param parallel_calculation activate parallel calculation
+     * @param parallel_calculation activate parallel calculation using OpenMP (if OpenMP is available)
      */
     template <class F>
     void forEachPair(const F &f, const bool parallel_calculation);

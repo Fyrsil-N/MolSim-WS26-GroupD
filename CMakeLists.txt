@@ -66,5 +66,6 @@ endif ()
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 include(vtk)
+include(openmp)
 include(clang-format)
 include(doxygen)
