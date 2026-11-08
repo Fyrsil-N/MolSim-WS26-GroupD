@@ -12,7 +12,7 @@
 namespace io {
 /**
  * This class defines a unified interface for all types of output methods to use (both output file based and live
- * visualizations). OutputWriters follow the observer pattern and don't store any data.
+ * visualizations). OutputWriters follow the observer pattern and don't store any particles themselves.
  */
 class OutputWriter {
    protected:

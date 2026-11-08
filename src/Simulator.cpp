@@ -54,9 +54,6 @@ void Simulator::runSimulation() {
 
     spdlog::info("Simulating now for {0:d} iterations.", total_iterations);
 
-    u_int8_t old_progress = 0;
-    u_int8_t progress = 0;
-
     // call updateF() once before the loop to set a real starting force and not 0 for the first iteration.
     updateF();
     // record the initial state of the simulation regardless of output interval
@@ -74,14 +71,6 @@ void Simulator::runSimulation() {
         for (auto &writer : output_writers) {
             writer->onStep(particles, iteration, current_time);
         }
-
-#if CMAKE_BUILD_TYPE == TRUE  // The need for speed
-        progress = 100 * iteration / total_iterations;
-        if (progress >= old_progress + 10) {
-            old_progress = progress;
-            spdlog::info("{0:d}%", progress);
-        }
-#endif
     }
 
     for (auto &writer : output_writers) {

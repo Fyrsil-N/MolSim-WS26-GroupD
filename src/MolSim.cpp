@@ -8,6 +8,7 @@
 #include "forces/LennardJones.h"
 #include "forces/PairwiseForce.h"
 #include "io/input/ParticleCreator.h"
+#include "io/output/ProgressWriter.h"
 #include "io/output/VTKWriter.h"
 #include "io/output/XYZWriter.h"
 
@@ -30,6 +31,8 @@ int main(int argc, char *argv[]) {
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
+
+    output_writers.push_back(std::make_unique<io::ProgressWriter>(static_cast<int>(params->t_end / params->delta_t)));
 
     std::filesystem::path out_dir("./out_0");
     for (int i = 0; std::filesystem::exists(out_dir); ++i) {
