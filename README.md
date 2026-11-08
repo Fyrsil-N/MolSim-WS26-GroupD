@@ -11,14 +11,15 @@ instantiation are separated and the testing framework can make direct use of all
 ### Simulation core: `Simulator`, `ParticleContainer`, `Particle`
 
 * `Simulator` owns all parts of the program related to physical updates and the main simulation loop.
-    * It is the only part of the project that is intended to write the attributes of particles.
     * The main simulation loop follows the Störmer–Verlet order (x → F → v).
     * The specific force used for the update can be passed in via an interface (see `forces` namespace).
     * To make the pairwise force calculation more efficient, we make use of Newton's third law and update the forces of
       both particles at the same time with opposite signs. This halves the number of force calculations.
 * `ParticleContainer` is based on a `std::vector`, as it provides an extendable but still cache-friendly data structure.
-    * We pass through the iterators of the vector for use in range-based for loops and provide a `forEachPair` method
-      that visits every distinct pair of particles exactly once and applies a given function to it.
+    * We pass through the iterators of the vector for use in range-based for loops.
+    * The `forEachPair` method can be used to apply a function to every unique pair of particles exactly once. This is
+      where the forces on particles get applied.
+    * `forEachPair` supports both normal serial and also parallel execution (if `OpenMP` is installed and configured).
     * The `reserve` method can be used to reserve space for large amounts of particles to reduce relocations of the
       vector.
 * `Particle` stores the state of a particle together with getters and setters. It implements a `noexcept` move
@@ -42,19 +43,19 @@ instantiation are separated and the testing framework can make direct use of all
 
 ### Input and output: `namespace io`
 
-* To allow for different methods of output, we provide an interface `OutputWriter` and adapt the `VTKWriter` and
-  `XYZWriter` to follow it.
-    * Each `OutputWriter` has its own `output_interval` (even if we currently only use a global interval), which states
-      at which iterations it writes output.
-    * We currently only implement two file-based writers for VTK and XYZ output, which are mutually exclusive. However,
-      the simulation loop supports an arbitrary number of writers (passed in as a vector), so simultaneous live
-      visualizations are possible.
+* To allow for different methods of output, we provide an interface `OutputWriter`.
+    * Each `OutputWriter` has its own `output_interval`, which states at which iterations it performs its action.
+    * We currently implement two file-based writers for VTK and XYZ output, which are mutually exclusive.
+    * The `ProgressWriter` logs the progress of the simulation in 10% increments.
+    * The `PerformanceWriter` allows us to measure the performance of a given simulation run.
     * Writers need to implement an `onStep` method called at every iteration and may override `onEnd` for final
       summaries.
     * Writers can only read from the `ParticleContainer` but never write to it.
-* To allow for different input methods, we define the interface `InputReader` and adapt the `FileReader` to follow it.
+* To allow for different input methods, we define the interface `InputReader`.
     * Readers have to implement the method `readInParticles`, which fills a provided `ParticleContainer`.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
+    * The old `FileReader` is fully replaced by the `ParticleCreator` in this version, which allows initializing the
+      simulation with arbitrary cuboids of particles and sets a starting temperature.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
