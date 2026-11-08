@@ -95,18 +95,18 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
         // Retrieve next line
         getline(input_file, tmp_string);
 
-        // ignore comments and empty lines
-        if (tmp_string.at(0) == '#') {
-            i--;
-            continue;
-        }
-
         if (tmp_string.empty()) {
             if (i < 3) {
                 spdlog::error("Error: End of definition reached unexpectedly reading shape parameter {}", i + 1);
                 exit(-1);
             }
             break;
+        }
+
+        // ignore comments and empty lines
+        if (tmp_string.at(0) == '#') {
+            i--;
+            continue;
         }
 
         switch (i) {
