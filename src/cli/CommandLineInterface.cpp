@@ -40,6 +40,7 @@ void printHelp(const char *program_name) {
 #else
               << "  -p, --parallel                 calculate the forces in parallel (unavailable in this build)\n"
 #endif
+              << "  -b, --benchmark                run a benchmark (disables all output and logs)\n"
               << "  -h, --help                     print this help and exit\n";
 }
 
@@ -103,6 +104,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"log-level", required_argument, nullptr, 'l'},
         {"vtk", no_argument, nullptr, 'v'},
         {"parallel", no_argument, nullptr, 'p'},
+        {"benchmark", no_argument, nullptr, 'b'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -110,7 +112,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vph", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vpbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -163,6 +165,10 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                     "unsupported flag -p set. OpenMP is not available to the program (reconfigure with "
                     "-DENABLE_OPENMP=ON to enable)");
 #endif
+                break;
+            }
+            case 'b': {
+                params.benchmark_run = true;
                 break;
             }
             case 'h': {

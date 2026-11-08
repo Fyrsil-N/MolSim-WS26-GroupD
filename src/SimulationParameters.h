@@ -45,4 +45,9 @@ struct SimulationParameters {
      * log level for the execution (trace, debug, info, warn, err, critical, off)
      */
     spdlog::level::level_enum log_level = spdlog::level::info;
+
+    /**
+     * Flag to activate a benchmark run (time the simulation using the PerformanceWriter)
+     */
+    bool benchmark_run = false;
 };
