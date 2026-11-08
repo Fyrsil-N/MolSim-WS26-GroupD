@@ -12,6 +12,7 @@
 #include "io/output/ProgressWriter.h"
 #include "io/output/VTKWriter.h"
 #include "io/output/XYZWriter.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace {
 /**
@@ -56,6 +57,8 @@ std::vector<std::unique_ptr<io::OutputWriter>> setupOutputWriters(const Simulati
 }  // namespace
 
 int main(int argc, char *argv[]) {
+    spdlog::set_default_logger(spdlog::stderr_color_mt("molsim"));
+
     // parse the command line arguments
     auto params = cli::parseArguments(argc, argv);
     if (!params) {
@@ -63,12 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     // set the log level
-    if (params->benchmark_run) {
-        spdlog::info("Running benchmark and disabling all following logs...");
-        spdlog::set_level(spdlog::level::off);
-    } else {
-        spdlog::set_level(params->log_level);
-    }
+    spdlog::set_level(params->log_level);
 
     // create the particle container and fill it
     ParticleContainer particles{};
@@ -83,10 +81,17 @@ int main(int argc, char *argv[]) {
     // instantiate (and combine if necessary) the forces to be used in the simulation
     std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::LennardJones>();
 
+    // disable in-simulation logging for benchmarks
+    if (params->benchmark_run) {
+        spdlog::warn("Running benchmark and disabling all following logs...");
+        spdlog::set_level(spdlog::level::off);
+    }
+
     // instantiate and start the Simulator
     Simulator simulator{particles,     std::move(force),    params->delta_t,
                         params->t_end, params->omp_enabled, std::move(output_writers)};
-    spdlog::info("Hello from MolSim for PSE! Simulating ...");
+    spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...\n",
+                 static_cast<int>(params->t_end / params->delta_t));
     simulator.runSimulation();
     spdlog::info("Simulation complete. Terminating...");
     return EXIT_SUCCESS;

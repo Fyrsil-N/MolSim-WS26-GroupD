@@ -7,7 +7,6 @@
 #include <getopt.h>
 #include <spdlog/spdlog.h>
 
-#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -15,6 +14,8 @@
 #include <optional>
 #include <string>
 #include <string_view>
+
+#include "utils/Parsers.h"
 
 namespace {
 /**
@@ -42,34 +43,6 @@ void printHelp(const char *program_name) {
 #endif
               << "  -b, --benchmark                run a benchmark (disables all output and logs)\n"
               << "  -h, --help                     print this help and exit\n";
-}
-
-/**
- * parse string (command line argument) to a finite double
- * @param str string_view of the string to parse
- * @return the parsed double if possible or a std::nullopt
- */
-std::optional<double> parseDouble(std::string_view str) {
-    double value{};
-    const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-    if (ec != std::errc{} || ptr != str.data() + str.size() || !std::isfinite(value)) {
-        return std::nullopt;
-    }
-    return value;
-}
-
-/**
- * parse string (command line argument) to a finite int
- * @param str string_view of the string to parse
- * @return the parsed int if possible or a std::nullopt
- */
-std::optional<int> parseInt(std::string_view str) {
-    int value{};
-    const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-    if (ec != std::errc{} || ptr != str.data() + str.size()) {
-        return std::nullopt;
-    }
-    return value;
 }
 
 /**

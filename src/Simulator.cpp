@@ -52,8 +52,6 @@ void Simulator::runSimulation() {
 
     int total_iterations = static_cast<int>(t_end / delta_t);
 
-    spdlog::info("Simulating now for {0:d} iterations.", total_iterations);
-
     // call updateF() once before the loop to set a real starting force and not 0 for the first iteration.
     updateF();
     // record the initial state of the simulation regardless of output interval
