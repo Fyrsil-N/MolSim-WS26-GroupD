@@ -2,7 +2,7 @@
 // Created by fmathis on 02/11/2026.
 //
 
-#include "../src/forces/LennardJones.h"
+#include "forces/LennardJones.h"
 
 #include "utils/ArrayUtils.h"
 

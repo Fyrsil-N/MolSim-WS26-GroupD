@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <memory>
 #include <set>
 #include <utility>
 
@@ -24,7 +26,7 @@ class TestParticleContainer : public ::testing::Test {
 }  // namespace
 
 // Test Constructing a ParticleContainer and filling it with emplace back.
-TEST_F(TestParticleContainer, constructorTest) {
+TEST_F(TestParticleContainer, constructor) {
     ASSERT_EQ(container.size(), 10);
 
     auto particle_iter = container.begin();
@@ -36,7 +38,7 @@ TEST_F(TestParticleContainer, constructorTest) {
 
 // Test that filling a particle container after specifying the required size with reserve does not need to copy or
 // relocate anything.
-TEST_F(TestParticleContainer, reserveTest) {
+TEST_F(TestParticleContainer, reserve) {
     ASSERT_EQ(container.size(), 10);
 
     // reserve space for 10 additional particles
@@ -61,8 +63,8 @@ TEST_F(TestParticleContainer, reserveTest) {
     }
 }
 
-// Test that the ParticleContainer::forEachPair actually goes over each unique pair exactly once.
-TEST_F(TestParticleContainer, forEachPairTest) {
+// Test that the ParticleContainer::forEachPair actually goes over each unique pair exactly once (in serial mode)
+TEST_F(TestParticleContainer, forEachPair) {
     int function_calls = 0;
     std::set<std::pair<int, int>> pairs;
 
@@ -70,22 +72,52 @@ TEST_F(TestParticleContainer, forEachPairTest) {
     std::size_t expected_number_of_pairs = container.size() * (container.size() - 1) / 2;
 
     auto helper = [&function_calls, &pairs](Particle &p1, Particle &p2) -> std::array<double, 3> {
-        // #pragma omp critical
-        {
-            function_calls++;
-            // make sure we never call on equal particles
-            EXPECT_NE(&p1, &p2);
-            // remember each pair we visited (no duplicates)
-            if (p1.getType() < p2.getType()) {
-                pairs.emplace(p1.getType(), p2.getType());
-            } else {
-                pairs.emplace(p2.getType(), p1.getType());
-            }
-            return {0.0, 0.0, 0.0};
+        function_calls++;
+        // make sure we never call on equal particles
+        EXPECT_NE(&p1, &p2);
+        // remember each pair we visited (no duplicates)
+        if (p1.getType() < p2.getType()) {
+            pairs.emplace(p1.getType(), p2.getType());
+        } else {
+            pairs.emplace(p2.getType(), p1.getType());
         }
+        return {0.0, 0.0, 0.0};
     };
     container.forEachPair(helper, false);
 
     ASSERT_EQ(function_calls, expected_number_of_pairs);
     ASSERT_EQ(pairs.size(), expected_number_of_pairs);
+}
+
+// Test that forEachPair correctly adds the force to one and subtracts it from the other particle (newton's third law)
+// Test this behavior both in serial and in parallel mode (careful parallel test is only run if openmp is available
+// otherwise we get serial tests twice)
+TEST(ParticleContainerForceTest, forEachPairAccumulatesForces) {
+    // every pair gets a different force, so that a missing or duplicated pair changes the result
+    const auto pair_force = [](const Particle &p1, const Particle &p2) -> std::array<double, 3> {
+        const double value = (p1.getType() + 1.0) * (p2.getType() + 1.0);
+        return {-value, value, 2 * value};
+    };
+
+    // pair (0, 1) -> 2, pair (0, 2) -> 3, pair (1, 2) -> 6
+    constexpr std::array<double, 3> expected = {2.0 + 3.0, -2.0 + 6.0, -3.0 - 6.0};
+
+    for (const bool parallel : {false, true}) {
+        auto execution = parallel ? "serial" : "parallel";
+
+        ParticleContainer container;
+        for (int i = 0; i < 3; i++) {
+            container.emplaceBack(i);
+        }
+
+        container.forEachPair(pair_force, parallel);
+
+        std::size_t index = 0;
+        for (const Particle &p : container) {
+            EXPECT_DOUBLE_EQ(p.getF().at(0), -expected.at(index)) << "failed for " << execution;
+            EXPECT_DOUBLE_EQ(p.getF().at(1), expected.at(index)) << "failed for " << execution;
+            EXPECT_DOUBLE_EQ(p.getF().at(2), 2 * expected.at(index)) << "failed for " << execution;
+            ++index;
+        }
+    }
 }
