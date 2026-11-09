@@ -51,6 +51,7 @@ instantiation are separated and the testing framework can make direct use of all
     * Writers need to implement an `onStep` method called at every iteration and may override `onEnd` for final
       summaries.
     * Writers can only read from the `ParticleContainer` but never write to it.
+    * Output is written to an output folder in the project root.
 * To allow for different input methods, we define the interface `InputReader`.
     * Readers have to implement the method `readInParticles`, which fills a provided `ParticleContainer`.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.

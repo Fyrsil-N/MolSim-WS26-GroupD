@@ -31,9 +31,13 @@ std::vector<std::unique_ptr<io::OutputWriter>> setupOutputWriters(const Simulati
 
     output_writers.push_back(std::make_unique<io::ProgressWriter>(static_cast<int>(params.t_end / params.delta_t)));
 
-    std::filesystem::path out_dir("./out_0");
+    if (!std::filesystem::exists("../output")) {
+        std::filesystem::create_directory("../output");
+    }
+
+    std::filesystem::path out_dir("../output/out_0");
     for (int i = 0; std::filesystem::exists(out_dir); ++i) {
-        out_dir = std::filesystem::path("./out_" + std::to_string(i));
+        out_dir = std::filesystem::path("../output/out_" + std::to_string(i));
     }
 
     std::filesystem::create_directory(out_dir);
