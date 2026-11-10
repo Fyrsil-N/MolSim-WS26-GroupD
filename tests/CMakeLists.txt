@@ -8,7 +8,6 @@ FetchContent_Declare(
 
 # disable downloading things like mock subprojects that are large and not needed
 set(INSTALL_GTEST OFF)
-set(BUILD_GMOCK OFF)
 FetchContent_MakeAvailable(googletest)
 
 # collect all cpp files
@@ -24,6 +23,7 @@ target_link_libraries(MolSimTests
         PRIVATE
         MolSimCore
         GTest::gtest_main
+        GTest::gmock
 )
 
 include(GoogleTest)

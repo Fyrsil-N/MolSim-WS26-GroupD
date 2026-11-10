@@ -50,7 +50,7 @@ void Simulator::runSimulation() {
 
     int iteration = 0;
 
-    int total_iterations = static_cast<int>(t_end / delta_t);
+    int total_iterations = static_cast<int>(round((t_end / delta_t)));
 
     // call updateF() once before the loop to set a real starting force and not 0 for the first iteration.
     updateF();

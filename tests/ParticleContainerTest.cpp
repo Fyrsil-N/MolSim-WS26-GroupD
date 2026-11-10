@@ -12,11 +12,11 @@
 #include "ParticleContainer.h"
 
 namespace {
-class TestParticleContainer : public ::testing::Test {
+class ParticleContainerTest : public ::testing::Test {
    protected:
     ParticleContainer container;
 
-    TestParticleContainer() {
+    ParticleContainerTest() {
         // fill the container with 10 particles indexed using their type
         for (int i = 0; i < 10; i++) {
             container.emplaceBack(i);
@@ -26,7 +26,7 @@ class TestParticleContainer : public ::testing::Test {
 }  // namespace
 
 // Test Constructing a ParticleContainer and filling it with emplace back.
-TEST_F(TestParticleContainer, constructor) {
+TEST_F(ParticleContainerTest, constructor) {
     ASSERT_EQ(container.size(), 10);
 
     auto particle_iter = container.begin();
@@ -38,7 +38,7 @@ TEST_F(TestParticleContainer, constructor) {
 
 // Test that filling a particle container after specifying the required size with reserve does not need to copy or
 // relocate anything.
-TEST_F(TestParticleContainer, reserve) {
+TEST_F(ParticleContainerTest, reserve) {
     ASSERT_EQ(container.size(), 10);
 
     // reserve space for 10 additional particles
@@ -64,7 +64,7 @@ TEST_F(TestParticleContainer, reserve) {
 }
 
 // Test that the ParticleContainer::forEachPair actually goes over each unique pair exactly once (in serial mode)
-TEST_F(TestParticleContainer, forEachPair) {
+TEST_F(ParticleContainerTest, forEachPair) {
     int function_calls = 0;
     std::set<std::pair<int, int>> pairs;
 
