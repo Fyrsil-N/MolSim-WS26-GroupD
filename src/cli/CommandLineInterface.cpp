@@ -31,6 +31,7 @@ void printHelp(const char *program_name) {
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
               << "  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)\n"
+              << "  -f, --file-format <format>     input file format: raw|generator (default: generator)\n"
 #ifdef ENABLE_VTK_OUTPUT
               << "  -v, --vtk                      output simulation files using vtk (default: xyz)\n"
 #else
@@ -58,6 +59,21 @@ std::optional<spdlog::level::level_enum> parseLogLevel(std::string_view str) {
     }
     return level;
 }
+
+/**
+ * Parse the given input file format and verify it is supported.
+ * @param str file format string provided by the user
+ * @return the matching FileFormat or a std::nullopt
+ */
+std::optional<FileFormat> parseFileFormat(std::string_view str) {
+    if (str == "raw") {
+        return FileFormat::raw;
+    }
+    if (str == "generator") {
+        return FileFormat::generator;
+    }
+    return std::nullopt;
+}
 }  // namespace
 
 namespace cli {
@@ -75,6 +91,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
         {"log-level", required_argument, nullptr, 'l'},
+        {"file-format", required_argument, nullptr, 'f'},
         {"vtk", no_argument, nullptr, 'v'},
         {"parallel", no_argument, nullptr, 'p'},
         {"benchmark", no_argument, nullptr, 'b'},
@@ -85,7 +102,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:l:vpbh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:f:vpbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -128,6 +145,14 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                     "unsupported flag -v set. VTK is not available to the program (reconfigure with "
                     "-DENABLE_VTK_OUTPUT=ON to enable)");
 #endif
+                break;
+            }
+            case 'f': {
+                const auto value = parseFileFormat(optarg);
+                if (!value) {
+                    return fail("invalid file-format '" + std::string(optarg) + "', expected one of [raw, generator]");
+                }
+                params.file_format = *value;
                 break;
             }
             case 'p': {

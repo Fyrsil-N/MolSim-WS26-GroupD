@@ -7,6 +7,8 @@
 #include "cli/CommandLineInterface.h"
 #include "forces/LennardJones.h"
 #include "forces/PairwiseForce.h"
+#include "io/input/FileReader.h"
+#include "io/input/InputReader.h"
 #include "io/input/ParticleCreator.h"
 #include "io/output/PerformanceWriter.h"
 #include "io/output/ProgressWriter.h"
@@ -16,7 +18,24 @@
 
 namespace {
 /**
- * Setup the Required OutputWriters
+ * Setup the InputReader matching the file format of the command line arguments.
+ * @param params Simulation parameters with the input file and its format
+ * @return InputReader for the input file
+ */
+std::unique_ptr<io::InputReader> createInputReader(const SimulationParameters &params) {
+    switch (params.file_format) {
+        case FileFormat::raw:
+            return std::make_unique<io::FileReader>(params.input_file);
+        case FileFormat::generator:
+            return std::make_unique<io::ParticleCreator>(params.input_file);
+    }
+    // should not be reachable due to command line sanitization
+    spdlog::critical("unknown input file format");
+    std::exit(EXIT_FAILURE);
+}
+
+/**
+ * Setup the OutputWriters matching the command line arguments.
  * @param params Simulation parameters which dictate which writers are used in the run
  * @return Vector of all OutputWriters to be used in the simulation
  */
@@ -75,9 +94,9 @@ int main(int argc, char *argv[]) {
     // create the particle container and fill it
     ParticleContainer particles{};
 
-    // use the new ParticleCreator instead of the old FileReader
-    io::ParticleCreator file_reader(params->input_file);
-    file_reader.readInParticles(particles);
+    // read in the particles with the reader matching the input file format
+    const auto input_reader = createInputReader(params.value());
+    input_reader->readInParticles(particles);
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());

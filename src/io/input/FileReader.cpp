@@ -64,7 +64,7 @@ void FileReader::readInParticles(ParticleContainer &particles) {
         }
         if (datastream.eof()) {
             spdlog::error("'{}': eof reached unexpectedly reading line {} of {}", input_filename, i + 1, num_particles);
-            exit(-1);
+            std::exit(EXIT_FAILURE);
         }
         datastream >> m;
         particles.emplaceBack(x, v, m);

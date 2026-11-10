@@ -8,6 +8,20 @@
 #include <string>
 
 /**
+ * Supported formats of input files
+ */
+enum class FileFormat {
+    /**
+     * List of single particles with position, velocity and mass for the io::FileReader
+     */
+    raw,
+    /**
+     * Definitions of shapes like cuboids filled with particles for the io::ParticleCreator
+     */
+    generator,
+};
+
+/**
  * Parameters for a simulation run
  */
 struct SimulationParameters {
@@ -35,6 +49,11 @@ struct SimulationParameters {
      * VTK output flag (xyz if false)
      */
     bool vtk_output = false;
+
+    /**
+     * Format of the input file
+     */
+    FileFormat file_format = FileFormat::generator;
 
     /**
      * OpenMP activation flag (parallel execution if true)

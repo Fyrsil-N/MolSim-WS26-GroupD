@@ -14,7 +14,7 @@ namespace io {
  * This class implements functionality to fill a particle container with particles arranged in specific forms,
  * defined by a configuration file
  */
-class ParticleCreator : InputReader {
+class ParticleCreator : public InputReader {
    private:
     /**
      * Name of the configuration file that stores the initial particle data.

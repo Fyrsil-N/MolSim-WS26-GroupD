@@ -55,8 +55,8 @@ instantiation are separated and the testing framework can make direct use of all
 * To allow for different input methods, we define the interface `InputReader`.
     * Readers have to implement the method `readInParticles`, which fills a provided `ParticleContainer`.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
-    * The old `FileReader` is fully replaced by the `ParticleCreator` in this version, which allows initializing the
-      simulation with arbitrary cuboids of particles and sets a starting temperature.
+    * The `ParticleCreator` (default) initializes the simulation with arbitrary cuboids of particles and sets a starting
+      temperature. The old `FileReader` for lists of single particles is still available via `-f raw`.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
@@ -115,10 +115,11 @@ rm -rf build
 
 ### Execution
 
-Run the final executable inside `build/` to keep the repo clean and all output files contained in `build/`.
+Run the final executable inside `build/`.
 
 ```bash
 ./MolSim ../input/Assignment2_params -o 50 -e 5 -d 0.0002
+./MolSim ../input/Assignment2_params -o 50 -e 5 -d 0.0002 -p # uses parallelization
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.
@@ -131,11 +132,19 @@ Options:
   -e, --t-end <double>           end time (default: 1000)
   -o, --output-interval <int>    output is written every N iterations (default: 10)
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
+  -f, --file-format <format>     input file format: raw|generator (default: generator)
   -v, --vtk                      output simulation files using vtk (default: xyz)
   -p, --parallel                 calculate the forces in parallel (default: serial)
   -b, --benchmark                run a benchmark (disables all output and logs)
   -h, --help                     print this help and exit
 ```
+
+The format of the input file has to be specified using `-f` so the correct InputReader gets selected:
+
+* `generator` (default): Definitions of shapes like cuboids filled with particles for the ParticleCreator, e.g.
+  `input/Assignment2_params`.
+* `raw`: List of single particles with position, velocity and mass for the FileReader, e.g.
+  `input/eingabe-sonne.txt`.
 
 Note `-v` and `-p` are not always available which is also shown in the help message:
 
