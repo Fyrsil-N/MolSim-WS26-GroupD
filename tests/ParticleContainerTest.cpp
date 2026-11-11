@@ -103,7 +103,7 @@ TEST(ParticleContainerForceTest, forEachPairAccumulatesForces) {
     constexpr std::array<double, 3> expected = {2.0 + 3.0, -2.0 + 6.0, -3.0 - 6.0};
 
     for (const bool parallel : {false, true}) {
-        auto execution = parallel ? "serial" : "parallel";
+        auto execution = parallel ? "parallel" : "serial";
 
         ParticleContainer container;
         for (int i = 0; i < 3; i++) {

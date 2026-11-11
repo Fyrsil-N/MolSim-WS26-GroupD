@@ -7,6 +7,9 @@
 
 namespace forces {
 
+/**
+ * This class implements the computation of Lennard Jones forces between two particles.
+ */
 class LennardJones : public PairwiseForce {
    protected:
     double sigma = 1;

@@ -119,7 +119,7 @@ Run the final executable inside `build/`.
 
 ```bash
 ./MolSim ../input/Assignment2_params -o 50 -e 5 -d 0.0002
-./MolSim ../input/Assignment2_params -o 50 -e 5 -d 0.0002 -p # uses parallelization
+./MolSim ../input/Assignment2_params -o 50 -e 5 -d 0.0002 -s # is calculated serially
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.
