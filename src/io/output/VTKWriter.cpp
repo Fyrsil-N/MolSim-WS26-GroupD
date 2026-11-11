@@ -74,7 +74,11 @@ void VTKWriter::onStep(const ParticleContainer &particles, int iteration, double
     vtkNew<vtkXMLUnstructuredGridWriter> writer;
     writer->SetFileName(strstr.str().c_str());
     writer->SetInputData(grid);
-    writer->SetDataModeToBinary();
+#if (CMAKE_BUILD_TYPE != Debug)
+    writer->setDataModeToBinary();
+#else
+    writer->SetDataModeToAscii();
+#endif
 
     // Write the file
     writer->Write();

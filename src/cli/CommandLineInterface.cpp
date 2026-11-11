@@ -38,9 +38,9 @@ void printHelp(const char *program_name) {
               << "  -v, --vtk                      output simulation files using vtk (unavailable in this build)\n"
 #endif
 #ifdef ENABLE_OPENMP
-              << "  -p, --parallel                 calculate the forces in parallel (default: serial)\n"
+              << "  -s, --serial                 calculate the forces serially (default: parallel)\n"
 #else
-              << "  -p, --parallel                 calculate the forces in parallel (unavailable in this build)\n"
+              << "  -s, --serial                 calculate the forces serially (useless in this build)\n"
 #endif
               << "  -b, --benchmark                run a benchmark (disables all output and logs)\n"
               << "  -h, --help                     print this help and exit\n";
@@ -93,7 +93,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"log-level", required_argument, nullptr, 'l'},
         {"file-format", required_argument, nullptr, 'f'},
         {"vtk", no_argument, nullptr, 'v'},
-        {"parallel", no_argument, nullptr, 'p'},
+        {"serial", no_argument, nullptr, 's'},
         {"benchmark", no_argument, nullptr, 'b'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
@@ -102,7 +102,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:l:f:vpbh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:f:vsbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -155,13 +155,9 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.file_format = *value;
                 break;
             }
-            case 'p': {
+            case 's': {
 #ifdef ENABLE_OPENMP
-                params.omp_enabled = true;
-#else
-                return fail(
-                    "unsupported flag -p set. OpenMP is not available to the program (reconfigure with "
-                    "-DENABLE_OPENMP=ON to enable)");
+                params.omp_enabled = false;
 #endif
                 break;
             }

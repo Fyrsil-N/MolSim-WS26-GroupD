@@ -58,7 +58,11 @@ struct SimulationParameters {
     /**
      * OpenMP activation flag (parallel execution if true)
      */
+#ifdef ENABLE_OPENMP
+    bool omp_enabled = true;
+#else
     bool omp_enabled = false;
+#endif
 
     /**
      * log level for the execution (trace, debug, info, warn, err, critical, off)

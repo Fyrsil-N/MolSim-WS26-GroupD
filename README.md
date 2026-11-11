@@ -134,7 +134,7 @@ Options:
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
   -f, --file-format <format>     input file format: raw|generator (default: generator)
   -v, --vtk                      output simulation files using vtk (default: xyz)
-  -p, --parallel                 calculate the forces in parallel (default: serial)
+  -s, --serial                   calculate the forces serially (default: parallel)
   -b, --benchmark                run a benchmark (disables all output and logs)
   -h, --help                     print this help and exit
 ```
@@ -146,10 +146,9 @@ The format of the input file has to be specified using `-f` so the correct Input
 * `raw`: List of single particles with position, velocity and mass for the FileReader, e.g.
   `input/eingabe-sonne.txt`.
 
-Note `-v` and `-p` are not always available which is also shown in the help message:
+Note `-v` is not always available which is also shown in the help message:
 
 * `-v` is only available if the project was configured with `ENABLE_VTK_OUTPUT=ON` and produces an error otherwise.
-* `-p` is only available if the project was configured with `ENABLE_OPENMP=ON` and produces an error otherwise.
 
 ### Doxygen Documentation
 
@@ -183,9 +182,9 @@ this also means using the `-l`, `-v`, `-o` flag in combination has **no** effect
 Benchmarks should only be run on a release build.
 
 During a benchmark run the simulation will be executed normally on the input file (parallel or serial depending on the
-`-p` flag). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
+`-s` flag). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
 `std::cout`.
 
 ```bash
-./MolSim ../input/Assignment2_params -b -p -e 5 -d 0.0002
+./MolSim ../input/Assignment2_params -b -e 5 -d 0.0002
 ```
