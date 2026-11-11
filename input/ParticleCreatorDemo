@@ -1,0 +1,25 @@
+#generate a cuboid
+cuboid:
+#xyz coords
+-5   -5   -5
+#xyz-size
+10  10   10
+#xyz-velocity
+0   0   0
+#spacing
+1.1225
+#mass per particle (optional; default 1)
+1
+#type (optional; default 0)
+0
+
+#generate a particle
+particle:
+#xyz coords
+20   0   0
+#xyz-velocity
+-100   0   0
+#mass (optional; default 1)
+1
+#type (optional; default 0)
+1

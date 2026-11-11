@@ -49,6 +49,13 @@ class ParticleCreator : public InputReader {
     static void parseEllipsoid(std::ifstream &input_file, ParticleContainer &particles);
 
     /**
+     * Generates a particle based on given parameters.
+     * @param input_file the file input stream to read the parameters from
+     * @param particles ParticleContainer to store the newly generated particle
+     */
+    static void parseParticle(std::ifstream &input_file, ParticleContainer &particles);
+
+    /**
      * Parses all necessary parameters to create a shape from a given file input stream
      * @param input_file the file input stream to read the parameters from
      * @return a ShapeParameters struct containing all necessary information for generating the desired shape

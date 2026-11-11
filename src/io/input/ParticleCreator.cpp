@@ -41,6 +41,11 @@ void ParticleCreator::readInParticles(ParticleContainer &particles) {
             continue;
         }
 
+        if (tmp_string == "particle:") {
+            parseParticle(input_file, particles);
+            continue;
+        }
+
         if (tmp_string == "ellipsoid:") {
             parseEllipsoid(input_file, particles);
             continue;
@@ -88,6 +93,77 @@ void ParticleCreator::parseEllipsoid(std::ifstream &input_file, ParticleContaine
     ;
 }
 
+void ParticleCreator::parseParticle(std::ifstream &input_file, ParticleContainer &particles) {
+    ShapeParameters params;
+
+    std::string tmp_string;
+
+    for (int i = 0; i < 4; ++i) {
+        if (!input_file.good() || input_file.eof()) {
+            if (i < 2) {
+                spdlog::error("eof reached unexpectedly reading particle parameter {}", i + 1);
+                std::exit(EXIT_FAILURE);
+            }
+            break;
+        }
+
+        // Retrieve next line
+        getline(input_file, tmp_string);
+        tmp_string = std::string(trim(tmp_string));
+
+        if (tmp_string.empty()) {
+            if (i < 2) {
+                spdlog::error("End of definition reached unexpectedly reading particle parameter {}", i + 1);
+                std::exit(EXIT_FAILURE);
+            }
+            break;
+        }
+
+        // ignore comments and empty lines
+        if (tmp_string.at(0) == '#') {
+            i--;
+            continue;
+        }
+
+        switch (i) {
+            case 0: {
+                convertStringToArray(params.anchor_point, tmp_string);
+                break;
+            }
+            case 1: {
+                convertStringToArray(params.velocity, tmp_string);
+                break;
+            }
+            case 2: {
+                const auto value = parseDouble(tmp_string);
+                if (!value) {
+                    spdlog::error("unexpected parameter {}, expected a double", i + 1);
+                    std::exit(EXIT_FAILURE);
+                }
+                params.particle_mass = *value;
+                break;
+            }
+            case 3: {
+                const auto value = parseInt(tmp_string);
+                if (!value) {
+                    spdlog::error("unexpected parameter {}, expected an int", i + 1);
+                    std::exit(EXIT_FAILURE);
+                }
+                params.type = *value;
+                break;
+            }
+            default: {
+                // unreachable: i is always in [0, 5]
+                spdlog::critical("unexpected parameter {}", i + 1);
+                abort();
+            }
+        }
+    }
+
+    particles.emplaceBack(params.anchor_point, params.velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
+                          params.particle_mass, params.type);
+}
+
 ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
     ShapeParameters params;
 
@@ -99,7 +175,6 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
             if (i < 3) {
                 spdlog::error("eof reached unexpectedly reading shape parameter {}", i + 1);
                 std::exit(EXIT_FAILURE);
-                ;
             }
             break;
         }
@@ -112,7 +187,6 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
             if (i < 3) {
                 spdlog::error("End of definition reached unexpectedly reading shape parameter {}", i + 1);
                 std::exit(EXIT_FAILURE);
-                ;
             }
             break;
         }
@@ -148,7 +222,6 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
                 if (!value) {
                     spdlog::error("unexpected parameter {}, expected a double", i + 1);
                     std::exit(EXIT_FAILURE);
-                    ;
                 }
                 params.spacing = *value;
                 break;
@@ -158,7 +231,6 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
                 if (!value) {
                     spdlog::error("unexpected parameter {}, expected a double", i + 1);
                     std::exit(EXIT_FAILURE);
-                    ;
                 }
                 params.particle_mass = *value;
                 break;
@@ -168,7 +240,6 @@ ShapeParameters ParticleCreator::parseParameters(std::ifstream &input_file) {
                 if (!value) {
                     spdlog::error("unexpected parameter {}, expected an int", i + 1);
                     std::exit(EXIT_FAILURE);
-                    ;
                 }
                 params.type = *value;
                 break;
@@ -195,7 +266,6 @@ void ParticleCreator::convertStringToArray(std::array<double, 3> &array_to_fill,
             if (!value) {
                 spdlog::error("unexpected parameter {}", tmp);
                 std::exit(EXIT_FAILURE);
-                ;
             }
             array_to_fill.at(index_to_fill) = *value;
 
@@ -211,7 +281,6 @@ void ParticleCreator::convertStringToArray(std::array<double, 3> &array_to_fill,
         if (!value) {
             spdlog::error("unexpected parameter {}", tmp);
             std::exit(EXIT_FAILURE);
-            ;
         }
         array_to_fill.at(index_to_fill) = *value;
     }
