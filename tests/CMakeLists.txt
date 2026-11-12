@@ -26,5 +26,8 @@ target_link_libraries(MolSimTests
         GTest::gmock
 )
 
+# path to the input so ctest finds the test input file
+target_compile_definitions(MolSimTests PRIVATE TEST_INPUT_DIR="${PROJECT_SOURCE_DIR}/input")
+
 include(GoogleTest)
 gtest_discover_tests(MolSimTests)
