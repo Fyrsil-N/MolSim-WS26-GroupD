@@ -123,11 +123,10 @@ inline Container elementWisePairOp(const Container &lhs, const Container &rhs, F
     Container ret = lhs;
     auto retIter = std::begin(ret);
     auto lhsIter = std::cbegin(lhs);
-    const auto lhsEnd = std::cend(lhs);
     auto rhsIter = std::cbegin(rhs);
-    const auto rhsEnd = std::cend(rhs);
 
-    for (; lhsIter != lhsEnd and rhsIter != rhsEnd; ++lhsIter, ++rhsIter, ++retIter) {
+    for (auto remaining = std::min(std::size(lhs), std::size(rhs)); remaining > 0;
+         --remaining, ++lhsIter, ++rhsIter, ++retIter) {
         *retIter = binaryFunction(*lhsIter, *rhsIter);
     }
 
