@@ -22,20 +22,20 @@ void ParticleContainer::forEachPair(const F &f, [[maybe_unused]] const bool para
             nthreads, std::vector<std::array<double, 3>>(n, {0.0, 0.0, 0.0}));
 #pragma omp parallel
         {
-            auto &local = thread_results.at(omp_get_thread_num());
+            auto &local = thread_results[omp_get_thread_num()];
 #pragma omp for schedule(dynamic, 8)
             for (std::size_t i = 0; i < n; ++i) {
                 for (std::size_t j = i + 1; j < n; ++j) {
-                    std::array<double, 3> force = f(particles.at(i), particles.at(j));
-                    local.at(i) = local.at(i) + force;
-                    local.at(j) = local.at(j) - force;
+                    std::array<double, 3> force = f(particles[i], particles[j]);
+                    local[i] = local[i] + force;
+                    local[j] = local[j] - force;
                 }
             }
         }
 #pragma omp parallel for
         for (std::size_t j = 0; j < n; ++j) {
             for (int t = 0; t < nthreads; ++t) {
-                particles.at(j).addToF(thread_results.at(t).at(j));
+                particles[j].addToF(thread_results[t][j]);
             }
         }
         return;
@@ -44,9 +44,9 @@ void ParticleContainer::forEachPair(const F &f, [[maybe_unused]] const bool para
 
     for (std::size_t i = 0; i < n; ++i) {
         for (std::size_t j = i + 1; j < n; ++j) {
-            std::array<double, 3> force = f(particles.at(i), particles.at(j));
-            particles.at(i).addToF(force);
-            particles.at(j).addToF((-1) * force);
+            std::array<double, 3> force = f(particles[i], particles[j]);
+            particles[i].addToF(force);
+            particles[j].addToF((-1) * force);
         }
     }
 }
