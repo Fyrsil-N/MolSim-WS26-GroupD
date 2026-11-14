@@ -174,5 +174,5 @@ During a benchmark run the simulation will be executed normally on the input fil
 `std::cout`.
 
 ```bash
-./MolSim ../input/YamlReaderDemo.yml -b
+./MolSim ../input/Assignment3_Benchmark.yml -b
 ```

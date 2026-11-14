@@ -5,6 +5,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <array>
 #include <string>
 
 /**
@@ -25,6 +26,29 @@ struct SimulationParameters {
      * End time of the simulation
      */
     double t_end = 1000;
+
+    /**
+     * Number of spatial dimensions of the simulation (2 or 3).
+     * For 2D all particles lay in the z = 0 plane and no brownian motion is applied so they stay there.
+     * The linked cells algorithm also ignored the z dimension and doesn't add halo cells there.
+     */
+    int dimensions = 2;
+
+    /**
+     * Cut off radius for the linked cell algorithm
+     */
+    double r_cutoff = 3.0;
+
+    /**
+     * The simulation domain starts at these (x, y, z) coordinates.
+     */
+    std::array<double, 3> domain_anchor = {0, 0, -3};
+
+    /**
+     * Dimensions of the simulation Domain in (x,y,z) directions starting from the domain_anchor
+     * Includes both inner and boundary cells not halo cells.
+     */
+    std::array<double, 3> domain_dimensions = {180, 90, 6};
 
     /**
      * The program generates an output state every output_interval iterations
