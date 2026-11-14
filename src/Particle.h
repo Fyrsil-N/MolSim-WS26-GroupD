@@ -163,13 +163,6 @@ class Particle {
     bool operator==(const Particle &other) const;
 
     /**
-     * Calculates the capped distance between two particles
-     * @param other other particle to get distance to
-     * @return distance to the other particle capped to never be zero
-     */
-    double distanceTo(const Particle &other) const;
-
-    /**
      * @return human-readable representation of a particle
      */
     std::string toString() const;

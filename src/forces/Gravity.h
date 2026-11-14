@@ -4,6 +4,7 @@
 
 #pragma once
 #include "PairwiseForce.h"
+#include "utils/ArrayUtils.h"
 
 namespace forces {
 
@@ -18,7 +19,11 @@ class Gravity : public PairwiseForce {
      * @param p2 particle 2
      * @return gravitational force on p1 exerted by p2 in 3D space
      */
-    std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override;
+    inline std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override {
+        const auto diff = p2.getX() - p1.getX();
+        const double dist = ArrayUtils::L2Norm(diff);
+        return (p1.getM() * p2.getM() / (dist * dist * dist)) * diff;
+    }
 };
 
 }  // namespace forces

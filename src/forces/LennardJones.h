@@ -4,6 +4,7 @@
 
 #pragma once
 #include "PairwiseForce.h"
+#include "utils/ArrayUtils.h"
 
 namespace forces {
 
@@ -17,12 +18,21 @@ class LennardJones : public PairwiseForce {
 
    public:
     /**
-     * Compute the Lennard-Jones potential on p1 exerted by p2.
+     * Compute the Lennard-Jones force on p1 exerted by p2.
      * @param p1 particle 1
      * @param p2 particle 2
      * @return Lennard-Jones potential on p1 exerted by p2 in 3D space
      */
-    std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override;
+    inline std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override {
+        const auto diff = p2.getX() - p1.getX();
+        const double inv_r2 = 1 / ArrayUtils::squaredL2Norm(diff);
+
+        // power calls are expensive so use simple multiplication instead
+        const double sigma2_over_r2 = sigma * sigma * inv_r2;
+        const double sigma6_over_r6 = sigma2_over_r2 * sigma2_over_r2 * sigma2_over_r2;
+
+        return 24 * epsilon * inv_r2 * (sigma6_over_r6 - 2 * sigma6_over_r6 * sigma6_over_r6) * diff;
+    }
 };
 
 }  // namespace forces

@@ -67,11 +67,6 @@ bool Particle::operator==(const Particle &other) const {
            (old_f == other.old_f);
 }
 
-double Particle::distanceTo(const Particle &other) const {
-    const auto diff = this->getX() - other.getX();
-    return std::max(ArrayUtils::L2Norm(diff), std::numeric_limits<double>::denorm_min());
-}
-
 std::ostream &operator<<(std::ostream &stream, Particle &p) {
     stream << p.toString();
     return stream;

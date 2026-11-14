@@ -12,47 +12,6 @@
 #include "forces/LennardJones.h"
 #include "utils/ArrayUtils.h"
 
-// Test that distance calculation between particles is always positive
-TEST(ParticleTest, distanceCalculation) {
-    constexpr std::array<double, 3> x1 = {0, 0, 0};
-    constexpr std::array<double, 3> x2 = {-1, -1, -1};
-
-    auto p1 = Particle();
-    auto p2 = Particle();
-
-    p1.setX(x1);
-    p2.setX(x2);
-
-    ASSERT_EQ(p1.getX(), x1);
-    ASSERT_EQ(p2.getX(), x2);
-
-    const auto distance1 = p1.distanceTo(p2);
-    const auto distance2 = p2.distanceTo(p1);
-
-    EXPECT_DOUBLE_EQ(distance1, distance2);
-    EXPECT_GE(distance1, 0);
-    EXPECT_GE(distance2, 0);
-    EXPECT_DOUBLE_EQ(distance1, ArrayUtils::L2Norm(x2));
-}
-
-// Test that the distance between particles in the same spot is a numerical 0, so a close to zero but not exactly
-TEST(ParticleTest, distanceCalculation2) {
-    auto p1 = Particle();
-    auto p2 = Particle();
-
-    ASSERT_EQ(p1.getX(), p2.getX());
-
-    const auto distance1 = p1.distanceTo(p2);
-    const auto distance2 = p2.distanceTo(p1);
-
-    EXPECT_DOUBLE_EQ(distance1, distance2);
-    EXPECT_NE(distance1, 0.0);
-    EXPECT_NE(distance2, 0.0);
-
-    EXPECT_DOUBLE_EQ(distance1, 0.0);
-    EXPECT_DOUBLE_EQ(distance2, 0.0);
-}
-
 // Test Lennard Jones Force Calculation on exemplary values along the x axis to make sure attraction, stable state and
 // repulsion are correct including their direction and antisymmetry for both particles
 TEST(LennardJonesTest, calculateForce) {

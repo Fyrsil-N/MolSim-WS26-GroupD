@@ -1,0 +1,21 @@
+# shorter version of the assignment3 simulation so benchmarks run in reasonable time without all the optimizations
+simulation:
+  delta_t: 0.0005
+  end_t: 1.6
+  out_interval: 1000
+
+scene:
+  cuboids:
+    - anchor_point: [ 20, 20, 0 ]
+      dimensions: [ 100, 20, 1 ]
+      velocity: [ 0, 0, 0 ]
+      spacing: 1.1225
+      mass: 1
+      type: 0
+
+    - anchor_point: [ 70, 60, 0 ]
+      dimensions: [ 20, 20, 1 ]
+      velocity: [ 0, -10, 0 ]
+      spacing: 1.1225
+      mass: 1
+      type: 1
