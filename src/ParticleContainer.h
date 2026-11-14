@@ -63,13 +63,15 @@ class ParticleContainer {
     /**
      * Iterate over every unique pair of particles in the container and apply f(p_i, p_j).
      * @param f Callable taking two Particle references
+     * @param parallel_calculation activate parallel calculation using OpenMP (if OpenMP is available)
      */
     template <class F>
-    void forEachPair(const F &f) {
-        for (std::size_t i = 0; i < particles.size(); ++i) {
-            for (std::size_t j = i + 1; j < particles.size(); ++j) {
-                f(particles.at(i), particles.at(j));
-            }
-        }
-    }
+    void forEachPair(const F &f, const bool parallel_calculation);
+
+    /**
+     * @return human readable representation of a ParticleContainer
+     */
+    std::string toString() const;
 };
+
+#include "ParticleContainer.ipp"

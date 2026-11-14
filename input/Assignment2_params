@@ -1,0 +1,21 @@
+cuboid:
+#xyz coords
+0   0   0
+#xyz-size
+40  8   1
+#xyz-velocity
+0   0   0
+#spacing
+1.1225
+#mass per particle
+1
+#type (optional)
+0
+
+cuboid:
+15  15  0
+8   8   1
+0  -10  0
+1.1225
+1
+1

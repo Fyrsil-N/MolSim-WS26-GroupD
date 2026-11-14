@@ -1,1 +1,0 @@
-rm -rf build cmake-build-debug CMakeFiles doxygen-output

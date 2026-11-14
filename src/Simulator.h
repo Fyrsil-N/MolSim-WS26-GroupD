@@ -35,6 +35,10 @@ class Simulator {
      */
     double t_end;
     /**
+     * Activate parallel calculation of the forces
+     */
+    bool parallel_execution_enabled;
+    /**
      * List of output writers to be invokes during the simulation
      */
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
@@ -61,10 +65,11 @@ class Simulator {
      * @param pairwise_force The force acting on each pair of particles
      * @param delta_t Relative time increase between two iteration of the simulation loop
      * @param t_end End time of the Simulation which starts at time = 0
+     * @param parallel_execution_arg Activates parallel calculation of the forces if enabled
      * @param output_writers List of output writers to be invoked during the simulation
      */
     Simulator(ParticleContainer &particles, std::unique_ptr<forces::PairwiseForce> pairwise_force, double delta_t,
-              double t_end, std::vector<std::unique_ptr<io::OutputWriter>> output_writers);
+              double t_end, bool parallel_execution_arg, std::vector<std::unique_ptr<io::OutputWriter>> output_writers);
 
     /**
      * Runs the entire Simulation loop from t_start = 0 to t_end at steps of delta_t.

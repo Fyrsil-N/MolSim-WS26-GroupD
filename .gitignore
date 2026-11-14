@@ -39,5 +39,9 @@
 # This rule ignores any folder in the project root that contains "build"
 /*build*/
 
+# Output folders
+# This rule ignores any folder in the project root that contains "output"
+/*output*/
+
 # doxygen outputs
 /doxygen-output/

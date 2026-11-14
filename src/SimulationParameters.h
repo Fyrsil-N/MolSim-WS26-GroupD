@@ -3,7 +3,23 @@
 //
 
 #pragma once
+#include <spdlog/spdlog.h>
+
 #include <string>
+
+/**
+ * Supported formats of input files
+ */
+enum class FileFormat {
+    /**
+     * List of single particles with position, velocity and mass for the io::FileReader
+     */
+    raw,
+    /**
+     * Definitions of shapes like cuboids filled with particles for the io::ParticleCreator
+     */
+    generator,
+};
 
 /**
  * Parameters for a simulation run
@@ -33,4 +49,28 @@ struct SimulationParameters {
      * VTK output flag (xyz if false)
      */
     bool vtk_output = false;
+
+    /**
+     * Format of the input file
+     */
+    FileFormat file_format = FileFormat::generator;
+
+    /**
+     * OpenMP activation flag (parallel execution if true)
+     */
+#ifdef ENABLE_OPENMP
+    bool omp_enabled = true;
+#else
+    bool omp_enabled = false;
+#endif
+
+    /**
+     * log level for the execution (trace, debug, info, warn, err, critical, off)
+     */
+    spdlog::level::level_enum log_level = spdlog::level::info;
+
+    /**
+     * Flag to activate a benchmark run (time the simulation using the PerformanceWriter)
+     */
+    bool benchmark_run = false;
 };

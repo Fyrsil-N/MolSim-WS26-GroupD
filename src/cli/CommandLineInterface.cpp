@@ -5,8 +5,8 @@
 #include "cli/CommandLineInterface.h"
 
 #include <getopt.h>
+#include <spdlog/spdlog.h>
 
-#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -14,6 +14,8 @@
 #include <optional>
 #include <string>
 #include <string_view>
+
+#include "utils/Parsers.h"
 
 namespace {
 /**
@@ -28,40 +30,49 @@ void printHelp(const char *program_name) {
               << "  -e, --t-end <double>           end time (default: " << defaults.t_end << ")\n"
               << "  -o, --output-interval <int>    output is written every N iterations (default: "
               << defaults.output_interval << ")\n"
+              << "  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)\n"
+              << "  -f, --file-format <format>     input file format: raw|generator (default: generator)\n"
 #ifdef ENABLE_VTK_OUTPUT
               << "  -v, --vtk                      output simulation files using vtk (default: xyz)\n"
 #else
               << "  -v, --vtk                      output simulation files using vtk (unavailable in this build)\n"
 #endif
+#ifdef ENABLE_OPENMP
+              << "  -s, --serial                   calculate the forces serially (default: parallel)\n"
+#else
+              << "  -s, --serial                   calculate the forces serially (useless in this build)\n"
+#endif
+              << "  -b, --benchmark                run a benchmark (disables all output and logs)\n"
               << "  -h, --help                     print this help and exit\n";
 }
 
 /**
- * parse string (command line argument) to a finite double
- * @param str string_view of the string to parse
- * @return the parsed double if possible or a std::nullopt
+ * Parse the given log level and verify it is a proper log level.
+ * @param str log level string provided by the user
+ * @return valid and verified log level enum or a std::nullopt
  */
-std::optional<double> parseDouble(std::string_view str) {
-    double value{};
-    const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-    if (ec != std::errc{} || ptr != str.data() + str.size() || !std::isfinite(value)) {
+std::optional<spdlog::level::level_enum> parseLogLevel(std::string_view str) {
+    spdlog::level::level_enum level = spdlog::level::from_str(std::string(str));
+    // a wrong string results in level = off so check if the string was actually off or if its an error.
+    if (level == spdlog::level::off && str != "off") {
         return std::nullopt;
     }
-    return value;
+    return level;
 }
 
 /**
- * parse string (command line argument) to a finite int
- * @param str string_view of the string to parse
- * @return the parsed int if possible or a std::nullopt
+ * Parse the given input file format and verify it is supported.
+ * @param str file format string provided by the user
+ * @return the matching FileFormat or a std::nullopt
  */
-std::optional<int> parseInt(std::string_view str) {
-    int value{};
-    const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-    if (ec != std::errc{} || ptr != str.data() + str.size()) {
-        return std::nullopt;
+std::optional<FileFormat> parseFileFormat(std::string_view str) {
+    if (str == "raw") {
+        return FileFormat::raw;
     }
-    return value;
+    if (str == "generator") {
+        return FileFormat::generator;
+    }
+    return std::nullopt;
 }
 }  // namespace
 
@@ -70,7 +81,8 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     SimulationParameters params;
 
     const auto fail = [&](const std::string &message) -> std::optional<SimulationParameters> {
-        std::cerr << argv[0] << ": " << message << '\n' << "Try '" << argv[0] << " --help' for more information.\n";
+        spdlog::error("{}: {}", argv[0], message);
+        spdlog::info("Try '{} --help' for more information.", argv[0]);
         return std::nullopt;
     };
 
@@ -78,7 +90,11 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
         {"delta-t", required_argument, nullptr, 'd'},
         {"t-end", required_argument, nullptr, 'e'},
         {"output-interval", required_argument, nullptr, 'o'},
+        {"log-level", required_argument, nullptr, 'l'},
+        {"file-format", required_argument, nullptr, 'f'},
         {"vtk", no_argument, nullptr, 'v'},
+        {"serial", no_argument, nullptr, 's'},
+        {"benchmark", no_argument, nullptr, 'b'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
@@ -86,7 +102,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:vh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":d:e:o:l:f:vsbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'd': {
                 const auto value = parseDouble(optarg);
@@ -112,14 +128,41 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                 params.output_interval = *value;
                 break;
             }
+            case 'l': {
+                const auto value = parseLogLevel(optarg);
+                if (!value) {
+                    return fail("invalid log-level '" + std::string(optarg) +
+                                "', expected one of [trace, debug, info, warn, err, critical, off]");
+                }
+                params.log_level = *value;
+                break;
+            }
             case 'v': {
 #ifdef ENABLE_VTK_OUTPUT
                 params.vtk_output = true;
 #else
                 return fail(
-                    "unsupported flag -v set. VTK is not available to the program.\nTo enable the VTK output "
-                    "reconfigure with the ENABLE_VTK_OUTPUT option turned on.");
+                    "unsupported flag -v set. VTK is not available to the program (reconfigure with "
+                    "-DENABLE_VTK_OUTPUT=ON to enable)");
 #endif
+                break;
+            }
+            case 'f': {
+                const auto value = parseFileFormat(optarg);
+                if (!value) {
+                    return fail("invalid file-format '" + std::string(optarg) + "', expected one of [raw, generator]");
+                }
+                params.file_format = *value;
+                break;
+            }
+            case 's': {
+#ifdef ENABLE_OPENMP
+                params.omp_enabled = false;
+#endif
+                break;
+            }
+            case 'b': {
+                params.benchmark_run = true;
                 break;
             }
             case 'h': {
@@ -145,7 +188,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     }
 
     if (params.delta_t > params.t_end) {
-        std::cerr << "Warning: delta_t (" << params.delta_t << ") is larger than t_end (" << params.t_end << ").\n";
+        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
     }
 
     return params;

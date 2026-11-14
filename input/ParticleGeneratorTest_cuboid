@@ -1,0 +1,14 @@
+# Input for tests/ParticleGeneratorTest.cpp. DONT CHANGE!
+cuboid:
+#xyz coords
+1   -2   0.5
+#xyz-size
+3   2   4
+#xyz-velocity
+1.5  -0.5  2.0
+#spacing
+1.1225
+#mass per particle
+2.5
+#type
+3

@@ -1,11 +1,14 @@
 # Find clang-format
 find_program(CLANG_FORMAT "clang-format")
-if(CLANG_FORMAT)
+if (CLANG_FORMAT)
     message(STATUS "Found clang-format: ${CLANG_FORMAT}")
     # Define list of all source files
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
+            "tests/*.cpp"
+            "tests/*.h"
             "src/*.cpp"
             "src/*.h"
+            "src/*.ipp"
     )
 
     # Remove any files in build directories
@@ -20,6 +23,6 @@ if(CLANG_FORMAT)
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Auto-formatting all source files with clang-format"
     )
-else()
+else ()
     message(WARNING "clang-format not found - formatting target not available")
-endif()
+endif ()

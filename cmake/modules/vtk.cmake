@@ -2,6 +2,7 @@ option(ENABLE_VTK_OUTPUT "Enable VTK output" ON)
 
 if (ENABLE_VTK_OUTPUT)
     message(STATUS "VTK output enabled")
+
     # VTK Library, only add required components for less unnecessary includes
     find_package(VTK REQUIRED COMPONENTS
             CommonCore
@@ -21,13 +22,13 @@ if (ENABLE_VTK_OUTPUT)
         include(${VTK_USE_FILE})
     endif ()
 
-    target_link_libraries(MolSim
-            PRIVATE
+    target_link_libraries(MolSimCore
+            PUBLIC
             ${VTK_LIBRARIES}
     )
 
-    target_compile_definitions(MolSim
-            PRIVATE
+    target_compile_definitions(MolSimCore
+            PUBLIC
             ENABLE_VTK_OUTPUT
     )
 endif ()

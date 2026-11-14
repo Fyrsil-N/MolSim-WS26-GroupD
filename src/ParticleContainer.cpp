@@ -20,3 +20,11 @@ ParticleContainer::iterator ParticleContainer::end() { return particles.end(); }
 ParticleContainer::const_iterator ParticleContainer::begin() const { return particles.begin(); }
 
 ParticleContainer::const_iterator ParticleContainer::end() const { return particles.end(); }
+
+std::string ParticleContainer::toString() const {
+    std::string return_string = "";
+    for (const Particle &p : particles) {
+        return_string += p.toString() + "\n";
+    }
+    return return_string;
+}

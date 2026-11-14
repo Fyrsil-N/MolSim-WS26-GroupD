@@ -19,12 +19,12 @@ class Particle {
     /**
      * Position of the particle
      */
-    std::array<double, 3> x;
+    std::array<double, 3> x{};
 
     /**
      * Velocity of the particle
      */
-    std::array<double, 3> v;
+    std::array<double, 3> v{};
 
     /**
      * Force effective on this particle
@@ -39,7 +39,7 @@ class Particle {
     /**
      * Mass of this particle
      */
-    double m;
+    double m{};
 
     /**
      * Type of the particle. Use it for whatever you want (e.g. to separate
@@ -160,7 +160,14 @@ class Particle {
      * @param other other particle to compare to
      * @return True if two particles are equal in all members
      */
-    bool operator==(Particle &other);
+    bool operator==(const Particle &other) const;
+
+    /**
+     * Calculates the capped distance between two particles
+     * @param other other particle to get distance to
+     * @return distance to the other particle capped to never be zero
+     */
+    double distanceTo(const Particle &other) const;
 
     /**
      * @return human readable representation of a particle
