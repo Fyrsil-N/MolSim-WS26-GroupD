@@ -29,17 +29,17 @@ YamlReader::YamlReader(std::string filename) : filename(std::move(filename)) {
     }
 }
 
-void YamlReader::generateCuboid(const YAML::Node &root, ParticleContainer &particles) {
-    ShapeParameters params = parseParameters(root);
-
+void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
     particles.reserve(params.particle_dims.at(0) * params.particle_dims.at(1) * params.particle_dims.at(2));
-    for (unsigned int x = 0; x < params.particle_dims.at(0); ++x) {
-        for (unsigned int y = 0; y < params.particle_dims.at(1); ++y) {
-            for (unsigned int z = 0; z < params.particle_dims.at(2); ++z) {
+    for (size_t x = 0; x < params.particle_dims.at(0); ++x) {
+        for (size_t y = 0; y < params.particle_dims.at(1); ++y) {
+            for (size_t z = 0; z < params.particle_dims.at(2); ++z) {
                 std::array pos = {params.anchor_point.at(0) + static_cast<double>(x) * params.spacing,
                                   params.anchor_point.at(1) + static_cast<double>(y) * params.spacing,
                                   params.anchor_point.at(2) + static_cast<double>(z) * params.spacing};
-                particles.emplaceBack(pos, params.velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
+
+                particles.emplaceBack(pos,
+                                      params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
                                       params.particle_mass, params.type);
             }
         }
@@ -50,15 +50,58 @@ void YamlReader::generateCuboid(const YAML::Node &root, ParticleContainer &parti
                   params.particle_mass, params.type);
 }
 
-void YamlReader::generateParticle(const YAML::Node &root, ParticleContainer &particles) {
-    ShapeParameters params = parseParameters(root);
-
-    particles.reserve(1);
-    particles.emplaceBack(params.anchor_point, params.velocity + maxwellBoltzmannDistributedVelocity(0.1, 2),
+void YamlReader::generateParticle(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
+    particles.emplaceBack(params.anchor_point,
+                          params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
                           params.particle_mass, params.type);
 }
 
-ShapeParameters YamlReader::parseParameters(YAML::Node root) {
+void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
+    auto a = static_cast<long long>(params.particle_dims.at(0));
+    auto b = static_cast<long long>(params.particle_dims.at(1));
+    auto c = static_cast<long long>(params.particle_dims.at(2));
+
+    particles.reserve(8 * a * b * c);
+
+    for (long long x = 0; x < a; ++x) {
+        for (long long y = 0; y < b; ++y) {
+            for (long long z = 0; z < c; ++z) {
+                if (static_cast<double>(x * x) / static_cast<double>(a * a) +
+                        static_cast<double>(y * y) / static_cast<double>(b * b) +
+                        static_cast<double>(z * z) / static_cast<double>(c * c) >
+                    1) {
+                    continue;
+                }
+
+                for (int i = 0; i < (third_dim ? 8 : 4); ++i) {
+                    int x_sign = i % 2 < 1 ? -1 : 1;
+                    int y_sign = i % 4 < 2 ? -1 : 1;
+                    int z_sign = i % 8 < 4 ? -1 : 1;
+
+                    std::array<double, 3> pos{};
+                    pos.at(0) = params.anchor_point.at(0) + x_sign * (static_cast<double>(x) + 0.5) * params.spacing;
+                    pos.at(1) = params.anchor_point.at(1) + y_sign * (static_cast<double>(y) + 0.5) * params.spacing;
+                    pos.at(2) =
+                        third_dim ? params.anchor_point.at(2) + z_sign * (static_cast<double>(z) + 0.5) * params.spacing
+                                  : 0;
+
+                    particles.emplaceBack(pos,
+                                          params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
+                                          params.particle_mass, params.type);
+                }
+            }
+        }
+    }
+
+    particles.shrinkToFit();
+
+    spdlog::debug("Ellipsoid generated at ({}, {}, {}) with dimensions {}x{}x{}, h={}, m={}, type={}",
+                  params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2),
+                  params.particle_dims.at(0), params.particle_dims.at(1), params.particle_dims.at(2), params.spacing,
+                  params.particle_mass, params.type);
+}
+
+ShapeParameters YamlReader::parseParameters(YAML::Node root, bool third_dim) {
     ShapeParameters params;
 
     if (root["anchor_point"]) {
@@ -83,6 +126,12 @@ ShapeParameters YamlReader::parseParameters(YAML::Node root) {
 
     if (root["type"]) {
         params.type = root["type"].as<int>(0);
+    }
+
+    if (!third_dim) {
+        params.anchor_point.at(2) = 1;
+        params.particle_dims.at(2) = 1;
+        params.velocity.at(2) = 0;
     }
 
     return params;
@@ -118,6 +167,11 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
             continue;
         }
 
+        if (cur == "3d") {
+            params.third_dim = iter->second.as<bool>(false);
+            continue;
+        }
+
         spdlog::error("'{}': couldn't parse simulation information.", filename);
         exit(EXIT_FAILURE);
     }
@@ -127,7 +181,7 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
     }
 }
 
-void YamlReader::readInParticles(ParticleContainer &particles) {
+void YamlReader::readInParticles(ParticleContainer &particles, bool third_dim) {
     if (!file["scene"]) {
         spdlog::info("'{}': no scene information", filename);
         return;
@@ -147,12 +201,17 @@ void YamlReader::readInParticles(ParticleContainer &particles) {
         }
 
         if (cur == "cuboids") {
-            generateShapes(generateCuboid, child, particles);
+            generateShapes(generateCuboid, child, particles, third_dim);
             continue;
         }
 
         if (cur == "particles") {
-            generateShapes(generateParticle, child, particles);
+            generateShapes(generateParticle, child, particles, third_dim);
+            continue;
+        }
+
+        if (cur == "ellipsoids") {
+            generateShapes(generateEllipsoid, child, particles, third_dim);
             continue;
         }
 

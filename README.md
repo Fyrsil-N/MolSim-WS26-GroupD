@@ -56,7 +56,7 @@ instantiation are separated and the testing framework can make direct use of all
     * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided
       `ParticleContainer`s and `SimulationParameter`s.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
-    * The `YamlReader` initializes the simulation with arbitrary cuboids of particles and single particles.
+    * The `YamlReader` initializes the simulation with arbitrary arrangements of particles into shapes and single particles.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
@@ -117,8 +117,8 @@ rm -rf build
 Run the final executable inside `build/`.
 
 ```bash
-./MolSim ../input/Assignment3_Input.yml -v
-./MolSim ../input/Assignment3_Input.yml -v -s # is calculated serially
+./MolSim ../input/Assignment3_Input2.yml -v
+./MolSim ../input/Assignment3_Input2.yml -v -s # is calculated serially
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.

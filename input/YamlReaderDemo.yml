@@ -2,6 +2,7 @@ simulation:
   delta_t: 0.0002
   end_t: 5
   out_interval: 50
+  3d: true
 
 scene:
   cuboids:

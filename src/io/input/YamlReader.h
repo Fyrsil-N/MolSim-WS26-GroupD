@@ -29,24 +29,35 @@ class YamlReader : public InputReader {
 
     /**
      * Generates a cuboid based on given parameters.
-     * @param root the root node of the cuboid's data
+     * @param params the shape parameters
      * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
      */
-    static void generateCuboid(const YAML::Node &root, ParticleContainer &particles);
+    static void generateCuboid(ShapeParameters &params, ParticleContainer &particles, bool third_dim);
 
     /**
-     * Generates a single particle based on given parameters.
-     * @param root the root node of the particle data
+     * Generates a particle based on given parameters.
+     * @param params the shape parameters
      * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
      */
-    static void generateParticle(const YAML::Node &root, ParticleContainer &particles);
+    static void generateParticle(ShapeParameters &params, ParticleContainer &particles, bool third_dim);
+
+    /**
+     * Generates an ellipsoid based on given parameters.
+     * @param params the shape parameters
+     * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
+     */
+    static void generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, bool third_dim);
 
     /**
      * Parses all necessary parameters to create a shape from a given yaml root node
      * @param root the root node of the data to parse
+     * @param third_dim Whether the third spatial dimension is enabled
      * @return a ShapeParameters struct containing all necessary information for generating the desired shape
      */
-    static ShapeParameters parseParameters(YAML::Node root);
+    static ShapeParameters parseParameters(YAML::Node root, bool third_dim);
 
     /**
      * Iterate over every instance of a shape and generate it using its dedicated generator function
@@ -54,16 +65,18 @@ class YamlReader : public InputReader {
      * the node
      * @param root the root node of the shapes to parse
      * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
      */
     template <class F>
-    static void generateShapes(const F &f, YAML::Node root, ParticleContainer &particles) {
+    static void generateShapes(const F &f, YAML::Node root, ParticleContainer &particles, bool third_dim) {
         for (auto iter = root.begin(); iter != root.end(); ++iter) {
             if (!iter->as<YAML::Node>(YAML::Node(YAML::NodeType::Undefined)).IsMap()) {
                 spdlog::error("YamlReader Error: Couldn't parse shape information.");
                 exit(EXIT_FAILURE);
             }
 
-            f(iter->as<YAML::Node>(), particles);
+            ShapeParameters params = parseParameters(iter->as<YAML::Node>(), third_dim);
+            f(params, particles, third_dim);
         }
     }
 
@@ -75,7 +88,7 @@ class YamlReader : public InputReader {
     explicit YamlReader(std::string filename);
 
     /**
-     * Read in global simulation setting like domain size, output interval, start and end time
+     * Read in global simulation settings like domain size, output interval, start and end time
      * @param params SimulationParameters to fill out
      */
     void readInSimulation(SimulationParameters &params) override;
@@ -83,7 +96,8 @@ class YamlReader : public InputReader {
     /**
      * Read in initial particle data from the input file of the class and store the new particles in the container.
      * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
      */
-    void readInParticles(ParticleContainer &particles) override;
+    void readInParticles(ParticleContainer &particles, bool third_dim) override;
 };
 }  // namespace io

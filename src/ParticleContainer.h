@@ -32,6 +32,11 @@ class ParticleContainer {
     void reserve(std::size_t n);
 
     /**
+     * Reduce reserved storage to size().
+     */
+    void shrinkToFit();
+
+    /**
      * Create a new particle at the end of the container.
      * @param args Arguments for the particle constructor
      * @return Reference to the new particle

@@ -25,7 +25,7 @@ constexpr std::size_t particle_count = 3 * 2 * 4;
 
 ParticleContainer createCuboid() {
     ParticleContainer container;
-    io::YamlReader(input_file).readInParticles(container);
+    io::YamlReader(input_file).readInParticles(container, true);
     return container;
 }
 }  // namespace

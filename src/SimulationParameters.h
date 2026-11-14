@@ -28,6 +28,11 @@ struct SimulationParameters {
     double t_end = 1000;
 
     /**
+     * Whether the third spatial dimension is enabled
+     */
+    bool third_dim = false;
+
+    /**
      * Number of spatial dimensions of the simulation (2 or 3).
      * For 2D all particles lay in the z = 0 plane and no brownian motion is applied so they stay there.
      * The linked cells algorithm also ignored the z dimension and doesn't add halo cells there.

@@ -9,6 +9,8 @@
 
 void ParticleContainer::reserve(std::size_t n) { particles.reserve(n); }
 
+void ParticleContainer::shrinkToFit() { particles.shrink_to_fit(); }
+
 std::size_t ParticleContainer::size() const { return particles.size(); }
 
 bool ParticleContainer::empty() const { return particles.empty(); }

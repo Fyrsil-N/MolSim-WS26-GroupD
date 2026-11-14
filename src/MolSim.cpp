@@ -78,9 +78,8 @@ int main(int argc, char *argv[]) {
 
     // read in the particles with the yml reader
     std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
-    input_reader->readInParticles(particles);
     input_reader->readInSimulation(params.value());
-
+    input_reader->readInParticles(particles, params.value().third_dim);
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
 

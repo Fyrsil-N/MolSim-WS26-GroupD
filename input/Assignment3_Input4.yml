@@ -1,0 +1,12 @@
+simulation:
+  delta_t: 0.00005
+  end_t: 10
+  out_interval: 200
+  3d: false
+
+scene:
+  ellipsoids:
+    - anchor_point: [60, 25, 0]
+      dimensions: [15, 15, 1]
+      velocity: [0, -10, 0]
+      spacing: 1.1225

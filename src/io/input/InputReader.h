@@ -24,7 +24,8 @@ class InputReader {
     /**
      * Read in initial particle data from some source, create particles from it and store them into the given Container.
      * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether or not the third spatial dimension is enabled
      */
-    virtual void readInParticles(ParticleContainer &particles) = 0;
+    virtual void readInParticles(ParticleContainer &particles, bool third_dim) = 0;
 };
 }  // namespace io
