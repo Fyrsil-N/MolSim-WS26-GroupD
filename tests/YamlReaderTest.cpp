@@ -15,10 +15,9 @@
 
 namespace {
 // Same values as the test input file to check against. DON'T CHANGE!
-const std::string input_file = std::string(TEST_INPUT_DIR) + "/ParticleGeneratorTest_cuboid.yml";
+const std::string input_file = std::string(TEST_INPUT_DIR) + "/YamlReaderTest_Input.yml";
 constexpr std::array<double, 3> anchor = {1.0, -2.0, 0.5};
 constexpr std::array<size_t, 3> dims = {3, 2, 4};
-constexpr std::array<double, 3> base_velocity = {1.5, -0.5, 2.0};
 constexpr double spacing = 1.1225;
 constexpr double mass = 2.5;
 constexpr int type = 3;
@@ -34,7 +33,7 @@ ParticleContainer createCuboid() {
 // Generate a cuboid according to a simple test input file and check that the created particle container matches the
 // specifications. In particular, we check: every point in the cuboid should have a particle of the correct mass and
 // type. This implicitly checks: anchor point, spacing, particle count and dimensions.
-TEST(ParticleGeneratorTest, cuboidContainsAllParticles) {
+TEST(YamlReaderTest, cuboidContainsAllParticles) {
     const ParticleContainer container = createCuboid();
     ASSERT_EQ(container.size(), particle_count);
 
