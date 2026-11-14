@@ -7,9 +7,8 @@
 #include "cli/CommandLineInterface.h"
 #include "forces/LennardJones.h"
 #include "forces/PairwiseForce.h"
-#include "io/input/FileReader.h"
 #include "io/input/InputReader.h"
-#include "io/input/ParticleCreator.h"
+#include "io/input/YamlReader.h"
 #include "io/output/PerformanceWriter.h"
 #include "io/output/ProgressWriter.h"
 #include "io/output/VTKWriter.h"
@@ -24,10 +23,8 @@ namespace {
  */
 std::unique_ptr<io::InputReader> createInputReader(const SimulationParameters &params) {
     switch (params.file_format) {
-        case FileFormat::raw:
-            return std::make_unique<io::FileReader>(params.input_file);
-        case FileFormat::generator:
-            return std::make_unique<io::ParticleCreator>(params.input_file);
+        case FileFormat::yaml:
+            return std::make_unique<io::YamlReader>(params.input_file);
     }
     // should not be reachable due to command line sanitization
     spdlog::critical("unknown input file format");
@@ -66,7 +63,7 @@ std::vector<std::unique_ptr<io::OutputWriter>> setupOutputWriters(const Simulati
 #ifdef ENABLE_VTK_OUTPUT
         std::string out_name(out_dir.string() + "/MD_vtk");
         output_writers.push_back(std::make_unique<io::VTKWriter>(params.output_interval, out_name));
-#else  // safe guard, should never be reached (cli::parseArguments already rejects -v)
+#else  // safeguard, should never be reached (cli::parseArguments already rejects -v)
         spdlog::error("invalid flag -v set: VTK output is not available in this build");
         std::exit(EXIT_FAILURE);
 #endif
@@ -97,6 +94,7 @@ int main(int argc, char *argv[]) {
     // read in the particles with the reader matching the input file format
     const auto input_reader = createInputReader(params.value());
     input_reader->readInParticles(particles);
+    input_reader->readInSimulation(params.value());
 
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());

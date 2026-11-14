@@ -170,7 +170,7 @@ class Particle {
     double distanceTo(const Particle &other) const;
 
     /**
-     * @return human readable representation of a particle
+     * @return human-readable representation of a particle
      */
     std::string toString() const;
 };

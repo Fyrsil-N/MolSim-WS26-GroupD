@@ -11,14 +11,14 @@
  */
 struct ShapeParameters {
     /**
-     * Dimensions of the shape in particles
-     */
-    std::array<size_t, 3> particle_dims{};
-
-    /**
      * Point to anchor the shape to
      */
     std::array<double, 3> anchor_point{};
+
+    /**
+     * Dimensions of the shape in particles
+     */
+    std::array<size_t, 3> particle_dims{};
 
     /**
      * Initial velocity of the generated particles

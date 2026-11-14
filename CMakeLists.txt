@@ -43,10 +43,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+# yaml-cpp dependency
+FetchContent_Declare(
+        yaml-cpp
+        URL https://github.com/jbeder/yaml-cpp/archive/56e3bb550c91fd7005566f19c079cb7a503223cf.zip
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
+
 # build the core libary
 add_library(MolSimCore ${LIB_SRC})
 target_include_directories(MolSimCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(MolSimCore PUBLIC spdlog::spdlog)
+target_link_libraries(MolSimCore PUBLIC yaml-cpp::yaml-cpp)
 target_compile_options(MolSimCore PRIVATE ${COMPILE_FLAGS})
 
 # build the actual executable

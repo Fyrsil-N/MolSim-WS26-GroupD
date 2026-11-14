@@ -3,7 +3,9 @@
 //
 
 #pragma once
+
 #include "ParticleContainer.h"
+#include "SimulationParameters.h"
 
 namespace io {
 /**
@@ -12,6 +14,12 @@ namespace io {
 class InputReader {
    public:
     virtual ~InputReader() = default;
+
+    /**
+     * Read in initial particle data from the input file of the class and store the new particles in the container.
+     * @param params SimulationParameters for the simulator
+     */
+    virtual void readInSimulation(SimulationParameters &params) { (void)params; };
 
     /**
      * Read in initial particle data from some source, create particles from it and store them into the given Container.

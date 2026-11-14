@@ -12,13 +12,9 @@
  */
 enum class FileFormat {
     /**
-     * List of single particles with position, velocity and mass for the io::FileReader
+     * Definitions of shapes like cuboids filled with particles for the io::YamlReader
      */
-    raw,
-    /**
-     * Definitions of shapes like cuboids filled with particles for the io::ParticleCreator
-     */
-    generator,
+    yaml,
 };
 
 /**
@@ -53,7 +49,7 @@ struct SimulationParameters {
     /**
      * Format of the input file
      */
-    FileFormat file_format = FileFormat::generator;
+    FileFormat file_format = FileFormat::yaml;
 
     /**
      * OpenMP activation flag (parallel execution if true)

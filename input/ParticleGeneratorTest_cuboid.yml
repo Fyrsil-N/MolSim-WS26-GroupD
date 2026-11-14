@@ -1,0 +1,9 @@
+# Input for tests/ParticleGeneratorTest.cpp. DON'T CHANGE!
+scene:
+  cuboids:
+    - anchor_point: [1, -2, 0.5]
+      dimensions: [3, 2, 4]
+      velocity: [1.5, -0.5, 2.0]
+      spacing: 1.1225
+      mass: 2.5
+      type: 3

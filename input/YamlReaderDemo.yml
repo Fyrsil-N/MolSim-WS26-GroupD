@@ -1,0 +1,44 @@
+simulation:
+  delta_t: 0.0002
+  end_t: 5
+  out_interval: 50
+
+scene:
+  cuboids:
+    - anchor_point: [-5, -5, -5]
+      dimensions: [10, 10, 10]
+      velocity: [0, 0, 0]
+      spacing: 1.1225
+      particle_mass: 1
+      type: 0
+
+  particles:
+    - anchor_point: [20, 0, 0]
+      velocity: [-100, 0, 0]
+      particle_mass: 1
+      type: 1
+
+    - anchor_point: [ -40, 0, 0 ]
+      velocity: [ 100, 0, 0 ]
+      particle_mass: 1
+      type: 2
+
+    - anchor_point: [ 0, 60, 0 ]
+      velocity: [ 0, -100, 0 ]
+      particle_mass: 1
+      type: 3
+
+    - anchor_point: [ 0, -80, 0 ]
+      velocity: [ 0, 100, 0 ]
+      particle_mass: 1
+      type: 4
+
+    - anchor_point: [ 0, 0, 100 ]
+      velocity: [ 0, 0, -100 ]
+      particle_mass: 1
+      type: 5
+
+    - anchor_point: [ 0, 0, -120 ]
+      velocity: [ 0, 0, 100 ]
+      particle_mass: 1
+      type: 6

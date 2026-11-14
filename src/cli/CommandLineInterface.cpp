@@ -26,10 +26,6 @@ void printHelp(const char *program_name) {
     std::cout << "Usage: " << program_name << " [options] <input_file>\n"
               << "\n"
               << "Options:\n"
-              << "  -d, --delta-t <double>         time step size (default: " << defaults.delta_t << ")\n"
-              << "  -e, --t-end <double>           end time (default: " << defaults.t_end << ")\n"
-              << "  -o, --output-interval <int>    output is written every N iterations (default: "
-              << defaults.output_interval << ")\n"
               << "  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)\n"
               << "  -f, --file-format <format>     input file format: raw|generator (default: generator)\n"
 #ifdef ENABLE_VTK_OUTPUT
@@ -53,7 +49,7 @@ void printHelp(const char *program_name) {
  */
 std::optional<spdlog::level::level_enum> parseLogLevel(std::string_view str) {
     spdlog::level::level_enum level = spdlog::level::from_str(std::string(str));
-    // a wrong string results in level = off so check if the string was actually off or if its an error.
+    // a wrong string results in level = off so check if the string was actually off or if it's an error.
     if (level == spdlog::level::off && str != "off") {
         return std::nullopt;
     }
@@ -66,11 +62,8 @@ std::optional<spdlog::level::level_enum> parseLogLevel(std::string_view str) {
  * @return the matching FileFormat or a std::nullopt
  */
 std::optional<FileFormat> parseFileFormat(std::string_view str) {
-    if (str == "raw") {
-        return FileFormat::raw;
-    }
-    if (str == "generator") {
-        return FileFormat::generator;
+    if (str == "yaml") {
+        return FileFormat::yaml;
     }
     return std::nullopt;
 }
@@ -87,9 +80,6 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     };
 
     const option long_options[] = {
-        {"delta-t", required_argument, nullptr, 'd'},
-        {"t-end", required_argument, nullptr, 'e'},
-        {"output-interval", required_argument, nullptr, 'o'},
         {"log-level", required_argument, nullptr, 'l'},
         {"file-format", required_argument, nullptr, 'f'},
         {"vtk", no_argument, nullptr, 'v'},
@@ -102,32 +92,8 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":d:e:o:l:f:vsbh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":l:f:vsbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
-            case 'd': {
-                const auto value = parseDouble(optarg);
-                if (!value || *value <= 0) {
-                    return fail("invalid delta_t '" + std::string(optarg) + "', expected a number > 0");
-                }
-                params.delta_t = *value;
-                break;
-            }
-            case 'e': {
-                const auto value = parseDouble(optarg);
-                if (!value || *value <= 0) {
-                    return fail("invalid t_end '" + std::string(optarg) + "', expected a number > 0");
-                }
-                params.t_end = *value;
-                break;
-            }
-            case 'o': {
-                const auto value = parseInt(optarg);
-                if (!value || *value < 1) {
-                    return fail("invalid output interval '" + std::string(optarg) + "', expected an integer >= 1");
-                }
-                params.output_interval = *value;
-                break;
-            }
             case 'l': {
                 const auto value = parseLogLevel(optarg);
                 if (!value) {

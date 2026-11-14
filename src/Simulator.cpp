@@ -4,7 +4,8 @@
 
 #include "Simulator.h"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
+
 #include "utils/ArrayUtils.h"
 
 Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::PairwiseForce> pairwise_force_arg,

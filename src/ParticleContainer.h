@@ -66,10 +66,10 @@ class ParticleContainer {
      * @param parallel_calculation activate parallel calculation using OpenMP (if OpenMP is available)
      */
     template <class F>
-    void forEachPair(const F &f, const bool parallel_calculation);
+    void forEachPair(const F &f, bool parallel_calculation);
 
     /**
-     * @return human readable representation of a ParticleContainer
+     * @return human-readable representation of a ParticleContainer
      */
     std::string toString() const;
 };
