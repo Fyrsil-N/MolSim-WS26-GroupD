@@ -53,17 +53,17 @@ instantiation are separated and the testing framework can make direct use of all
     * Writers can only read from the `ParticleContainer` but never write to it.
     * Output is written to an output folder in the project root.
 * To allow for different input methods, we define the interface `InputReader`.
-    * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided `ParticleContainer`s and `SimulationParameter`s.
+    * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided
+      `ParticleContainer`s and `SimulationParameter`s.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
-    * The `YamlReader` (default) initializes the simulation with arbitrary cuboids of particles.
+    * The `YamlReader` initializes the simulation with arbitrary cuboids of particles and single particles.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
 ### Parsing input parameters: `namespace cli` and `SimulationParameters`
 
 * `CommandLineInterface` is responsible for reading in and validating all options and arguments of the program.
-    * We use `getopt_long` to safely get all parameters and parsing functions to read out numerical options.
-    * We validate input with basic sanity checks (positive time step and end time etc.).
+    * We use `getopt_long` to safely get all parameters.
     * A simple help message is provided with the `-h` option.
 * `SimulationParameters` is a simple struct to store and pass back the command line arguments to the rest of the
   program.
@@ -117,8 +117,8 @@ rm -rf build
 Run the final executable inside `build/`.
 
 ```bash
-./MolSim ../input/YamlReaderDemo.yml
-./MolSim ../input/YamlReaderDemo.yml -s # is calculated serially
+./MolSim ../input/Assignment3_Input.yml -v
+./MolSim ../input/Assignment3_Input.yml -v -s # is calculated serially
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.
@@ -128,14 +128,11 @@ Usage: ./MolSim [options] <input_file>
 
 Options:
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
-  -f, --file-format <format>     input file format: yaml (default: yaml)
   -v, --vtk                      output simulation files using vtk (default: xyz)
   -s, --serial                   calculate the forces serially (default: parallel)
   -b, --benchmark                run a benchmark (disables all output and logs)
   -h, --help                     print this help and exit
 ```
-
-The format of the input file has to be specified using `-f` so the correct InputReader gets selected. Currently only `YamlReader` is a valid InputReader after an inputting overhaul.
 
 Note `-v` is not always available which is also shown in the help message:
 

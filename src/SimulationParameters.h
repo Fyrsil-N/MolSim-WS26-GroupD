@@ -8,16 +8,6 @@
 #include <string>
 
 /**
- * Supported formats of input files
- */
-enum class FileFormat {
-    /**
-     * Definitions of shapes like cuboids filled with particles for the io::YamlReader
-     */
-    yaml,
-};
-
-/**
  * Parameters for a simulation run
  */
 struct SimulationParameters {
@@ -45,11 +35,6 @@ struct SimulationParameters {
      * VTK output flag (xyz if false)
      */
     bool vtk_output = false;
-
-    /**
-     * Format of the input file
-     */
-    FileFormat file_format = FileFormat::yaml;
 
     /**
      * OpenMP activation flag (parallel execution if true)

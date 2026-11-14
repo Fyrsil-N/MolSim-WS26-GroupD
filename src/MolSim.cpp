@@ -17,21 +17,6 @@
 
 namespace {
 /**
- * Setup the InputReader matching the file format of the command line arguments.
- * @param params Simulation parameters with the input file and its format
- * @return InputReader for the input file
- */
-std::unique_ptr<io::InputReader> createInputReader(const SimulationParameters &params) {
-    switch (params.file_format) {
-        case FileFormat::yaml:
-            return std::make_unique<io::YamlReader>(params.input_file);
-    }
-    // should not be reachable due to command line sanitization
-    spdlog::critical("unknown input file format");
-    std::exit(EXIT_FAILURE);
-}
-
-/**
  * Setup the OutputWriters matching the command line arguments.
  * @param params Simulation parameters which dictate which writers are used in the run
  * @return Vector of all OutputWriters to be used in the simulation
@@ -91,8 +76,8 @@ int main(int argc, char *argv[]) {
     // create the particle container and fill it
     ParticleContainer particles{};
 
-    // read in the particles with the reader matching the input file format
-    const auto input_reader = createInputReader(params.value());
+    // read in the particles with the yml reader
+    std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
     input_reader->readInParticles(particles);
     input_reader->readInSimulation(params.value());
 
@@ -111,7 +96,7 @@ int main(int argc, char *argv[]) {
     // instantiate and start the Simulator
     Simulator simulator{particles,     std::move(force),    params->delta_t,
                         params->t_end, params->omp_enabled, std::move(output_writers)};
-    spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...\n",
+    spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...",
                  static_cast<int>(params->t_end / params->delta_t));
     simulator.runSimulation();
     spdlog::info("Simulation complete. Terminating...");

@@ -46,8 +46,11 @@ FetchContent_MakeAvailable(spdlog)
 # yaml-cpp dependency
 FetchContent_Declare(
         yaml-cpp
-        URL https://github.com/jbeder/yaml-cpp/archive/56e3bb550c91fd7005566f19c079cb7a503223cf.zip
+        URL https://github.com/jbeder/yaml-cpp/archive/56e3bb550c91fd7005566f19c079cb7a503223cf.zip # use v0.9.0 (newest release)
 )
+# disable building unneeded yaml-cpp features
+set(YAML_CPP_BUILD_TOOLS OFF)
+set(YAML_CPP_BUILD_CONTRIB OFF)
 FetchContent_MakeAvailable(yaml-cpp)
 
 

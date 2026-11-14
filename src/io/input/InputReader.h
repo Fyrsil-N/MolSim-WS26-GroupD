@@ -16,10 +16,10 @@ class InputReader {
     virtual ~InputReader() = default;
 
     /**
-     * Read in initial particle data from the input file of the class and store the new particles in the container.
+     * Read in global simulation setting like domain size, output interval, start and end time
      * @param params SimulationParameters for the simulator
      */
-    virtual void readInSimulation(SimulationParameters &params) { (void)params; };
+    virtual void readInSimulation(SimulationParameters &params) { (void)params; }
 
     /**
      * Read in initial particle data from some source, create particles from it and store them into the given Container.

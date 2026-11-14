@@ -35,14 +35,14 @@ class YamlReader : public InputReader {
     static void generateCuboid(const YAML::Node &root, ParticleContainer &particles);
 
     /**
-     * Generates a cuboid based on given parameters.
-     * @param root the root node of the cuboid's data
+     * Generates a single particle based on given parameters.
+     * @param root the root node of the particle data
      * @param particles ParticleContainer to store all the newly generated particles
      */
     static void generateParticle(const YAML::Node &root, ParticleContainer &particles);
 
     /**
-     * Parses all necessary parameters to create a shape from a given file input stream
+     * Parses all necessary parameters to create a shape from a given yaml root node
      * @param root the root node of the data to parse
      * @return a ShapeParameters struct containing all necessary information for generating the desired shape
      */
@@ -69,13 +69,13 @@ class YamlReader : public InputReader {
 
    public:
     /**
-     * Constructor for a ParticleCreator for the given config file.
+     * Constructor for a YamlReader for the given config file.
      * @param filename Name of the config file that stores the particle configuration
      */
     explicit YamlReader(std::string filename);
 
     /**
-     * Read in initial particle data from the input file of the class and store the new particles in the container.
+     * Read in global simulation setting like domain size, output interval, start and end time
      * @param params SimulationParameters to fill out
      */
     void readInSimulation(SimulationParameters &params) override;

@@ -121,6 +121,10 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
         spdlog::error("'{}': couldn't parse simulation information.", filename);
         exit(EXIT_FAILURE);
     }
+
+    if (params.delta_t > params.t_end) {
+        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
+    }
 }
 
 void YamlReader::readInParticles(ParticleContainer &particles) {
