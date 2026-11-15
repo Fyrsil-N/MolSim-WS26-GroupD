@@ -12,7 +12,7 @@
 #include "forces/LennardJones.h"
 #include "utils/ArrayUtils.h"
 
-// Test Lennard Jones Force Calculation on exemplary values along the x axis to make sure attraction, stable state and
+// Test Lennard Jones Force Calculation on exemplary values along the x-axis to make sure attraction, stable state and
 // repulsion are correct including their direction and antisymmetry for both particles
 TEST(LennardJonesTest, calculateForce) {
     ParticleContainerDirectSum container;
@@ -21,7 +21,7 @@ TEST(LennardJonesTest, calculateForce) {
     auto p1 = container.getHandle(0);
     auto p2 = container.getHandle(1);
 
-    auto lennard_jones = forces::LennardJones();
+    auto lennard_jones = forces::LennardJones(1, 5, 100);
 
     // repulsion at 1.0 (p1 is pushed away form p2), stable at 2^(1/6), attraction at 2.0
     const std::array<double, 3> distances = {1.0, pow(2, (1. / 6.)), 2.0};

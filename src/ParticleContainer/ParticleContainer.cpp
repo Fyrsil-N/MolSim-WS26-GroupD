@@ -35,7 +35,7 @@ void ParticleContainer::emplaceBack(const std::array<double, 3> &x_arg, const st
 
 std::size_t ParticleContainer::size() const {
     // The invariant that all component have the same size is given as creating particles only happens through
-    // emplaceBack and that adds an entry to all six vectors so they wont fall out of sync
+    // emplaceBack and that adds an entry to all six vectors so they won't fall out of sync
     return data.positions.size();
 }
 
@@ -43,5 +43,5 @@ bool ParticleContainer::empty() const { return size() == 0; }
 
 void ParticleContainer::resetForces() {
     std::swap(data.old_forces, data.forces);
-    std::fill(data.forces.begin(), data.forces.end(), std::array<double, 3>{0.0, 0.0, 0.0});
+    std::ranges::fill(data.forces, std::array{0.0, 0.0, 0.0});
 }

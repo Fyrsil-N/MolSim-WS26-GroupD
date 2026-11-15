@@ -154,6 +154,7 @@ void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &param
         auto lj_params = root["Lennard-Jones"];
         double sigma = 1;
         double epsilon = 5;
+        double cutoff = 3;
 
         if (lj_params["sigma"]) {
             sigma = lj_params["sigma"].as<double>(1);
@@ -163,7 +164,11 @@ void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &param
             epsilon = lj_params["epsilon"].as<double>(5);
         }
 
-        params.pair_force = std::make_unique<forces::LennardJones>(sigma, epsilon);
+        if (lj_params["cutoff"]) {
+            cutoff = lj_params["cutoff"].as<double>(3);
+        }
+
+        params.pair_force = std::make_unique<forces::LennardJones>(sigma, epsilon, cutoff);
         return;
     }
 

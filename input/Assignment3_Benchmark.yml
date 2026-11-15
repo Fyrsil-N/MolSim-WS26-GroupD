@@ -3,6 +3,9 @@ simulation:
   delta_t: 0.0005
   end_t: 1.6
   out_interval: 1000
+  pair_force:
+    Lennard-Jones:
+      cutoff: 3
 
 scene:
   cuboids:
