@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 
-#include "ParticleContainer/ParticleContainer.h"
+#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "io/input/YamlReader.h"
 
 namespace {
@@ -23,8 +23,8 @@ constexpr double mass = 2.5;
 constexpr int type = 3;
 constexpr std::size_t particle_count = 3 * 2 * 4;
 
-ParticleContainer createCuboid() {
-    ParticleContainer container;
+ParticleContainerDirectSum createCuboid() {
+    ParticleContainerDirectSum container;
     io::YamlReader(input_file).readInParticles(container);
     return container;
 }
@@ -34,7 +34,7 @@ ParticleContainer createCuboid() {
 // specifications. In particular, we check: every point in the cuboid should have a particle of the correct mass and
 // type. This implicitly checks: anchor point, spacing, particle count and dimensions.
 TEST(YamlReaderTest, cuboidContainsAllParticles) {
-    const ParticleContainer container = createCuboid();
+    const ParticleContainerDirectSum container = createCuboid();
     ASSERT_EQ(container.size(), particle_count);
 
     // set to store all unique indices visited to check if every grid point has a particle

@@ -23,7 +23,8 @@ class LennardJones : public PairwiseForce {
      * @param p2 particle 2
      * @return Lennard-Jones potential on p1 exerted by p2 in 3D space
      */
-    inline std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override {
+    inline std::array<double, 3> calculateForce(const ConstParticleHandle p1,
+                                                const ConstParticleHandle p2) const override {
         const auto diff = p2.getX() - p1.getX();
         const double inv_r2 = 1 / ArrayUtils::squaredL2Norm(diff);
 

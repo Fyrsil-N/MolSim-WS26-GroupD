@@ -35,18 +35,15 @@ class Simulator {
      */
     double t_end;
     /**
-     * Activate parallel calculation of the forces
+     * Activate parallel calculation of the forces.
+     * Currently does nothing: the force calculation of the new particle containers is always serial (parallel support
+     * will be added again later).
      */
-    bool parallel_execution_enabled;
+    [[maybe_unused]] bool parallel_execution_enabled = false;
     /**
      * List of output writers to be invokes during the simulation
      */
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers;
-
-    /**
-     * calculate the force for all particles and update it in place
-     */
-    void updateF();
 
     /**
      * calculate the position for all particles and update it in place
@@ -69,7 +66,8 @@ class Simulator {
      * @param output_writers List of output writers to be invoked during the simulation
      */
     Simulator(ParticleContainer &particles, std::unique_ptr<forces::PairwiseForce> pairwise_force, double delta_t,
-              double t_end, bool parallel_execution_arg, std::vector<std::unique_ptr<io::OutputWriter>> output_writers);
+              double t_end, bool parallel_execution_arg [[maybe_unused]],
+              std::vector<std::unique_ptr<io::OutputWriter>> output_writers);
 
     /**
      * Runs the entire Simulation loop from t_start = 0 to t_end at steps of delta_t.

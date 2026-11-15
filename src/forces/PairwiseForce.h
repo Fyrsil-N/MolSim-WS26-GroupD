@@ -6,7 +6,9 @@
 
 #include <array>
 
-#include "ParticleContainer/Particle.h"
+#include "ParticleContainer/ConstParticleHandle.h"
+
+//@TODO rework this interface to avoid having the indirection of handles and also to allow inlining
 
 /**
  * Namespace forces groups types of forces that can act on particles.
@@ -26,7 +28,7 @@ class PairwiseForce {
      * @param p2 particle 2
      * @return the force on p1 caused by p2 as a Vector in 3D space
      */
-    virtual std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const = 0;
+    virtual std::array<double, 3> calculateForce(const ConstParticleHandle p1, const ConstParticleHandle p2) const = 0;
 };
 
 }  // namespace forces

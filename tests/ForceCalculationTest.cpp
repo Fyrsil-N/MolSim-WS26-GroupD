@@ -8,21 +8,20 @@
 #include <cmath>
 #include <cstddef>
 
-#include "ParticleContainer/Particle.h"
+#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "forces/LennardJones.h"
 #include "utils/ArrayUtils.h"
 
 // Test Lennard Jones Force Calculation on exemplary values along the x axis to make sure attraction, stable state and
 // repulsion are correct including their direction and antisymmetry for both particles
 TEST(LennardJonesTest, calculateForce) {
-    constexpr std::array<double, 3> x1 = {0, 0, 0};
-
-    auto p1 = Particle();
-    auto p2 = Particle();
+    ParticleContainerDirectSum container;
+    container.emplaceBack({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, 1.0);
+    container.emplaceBack({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, 1.0);
+    auto p1 = container.getHandle(0);
+    auto p2 = container.getHandle(1);
 
     auto lennard_jones = forces::LennardJones();
-
-    p1.setX(x1);
 
     // repulsion at 1.0 (p1 is pushed away form p2), stable at 2^(1/6), attraction at 2.0
     const std::array<double, 3> distances = {1.0, pow(2, (1. / 6.)), 2.0};
@@ -51,11 +50,11 @@ TEST(LennardJonesTest, calculateForce2) {
     constexpr std::array<double, 3> direction = {2. / 7., 3. / 7., 6. / 7.};
     constexpr std::array<double, 3> x1 = {1.0, -2.0, 0.5};
 
-    auto p1 = Particle();
-    auto p2 = Particle();
-
-    p1.setX(x1);
-    p2.setX(x1 + direction);
+    ParticleContainerDirectSum container;
+    container.emplaceBack(x1, {0.0, 0.0, 0.0}, 1.0);
+    container.emplaceBack(x1 + direction, {0.0, 0.0, 0.0}, 1.0);
+    auto p1 = container.getHandle(0);
+    auto p2 = container.getHandle(1);
 
     const auto force1 = forces::LennardJones().calculateForce(p1, p2);
     const auto force2 = forces::LennardJones().calculateForce(p2, p1);

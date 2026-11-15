@@ -1,30 +1,39 @@
-/*
- * ParticleContainer.cpp
- *
- *  Created on: 22.10.2026
- *      Author: hutj
- */
+//
+// Created by hutj on 15.11.26.
+//
 
 #include "ParticleContainer.h"
 
-void ParticleContainer::reserve(std::size_t n) { particles.reserve(n); }
+#include <algorithm>
 
-std::size_t ParticleContainer::size() const { return particles.size(); }
+void ParticleContainer::reserve(std::size_t n) {
+    data.positions.reserve(n);
+    data.velocities.reserve(n);
+    data.forces.reserve(n);
+    data.old_forces.reserve(n);
+    data.masses.reserve(n);
+    data.types.reserve(n);
+}
 
-bool ParticleContainer::empty() const { return particles.empty(); }
+void ParticleContainer::emplaceBack(const std::array<double, 3> &x_arg, const std::array<double, 3> &v_arg,
+                                    double m_arg, int type) {
+    data.positions.emplace_back(x_arg);
+    data.velocities.emplace_back(v_arg);
+    data.forces.emplace_back(std::array<double, 3>{0.0, 0.0, 0.0});
+    data.old_forces.emplace_back(std::array<double, 3>{0.0, 0.0, 0.0});
+    data.masses.emplace_back(m_arg);
+    data.types.emplace_back(type);
+}
 
-ParticleContainer::iterator ParticleContainer::begin() { return particles.begin(); }
+std::size_t ParticleContainer::size() const {
+    // The invariant that all component have the same size is given as creating particles only happens through
+    // emplaceBack and that adds an entry to all six vectors so they wont fall out of sync
+    return data.positions.size();
+}
 
-ParticleContainer::iterator ParticleContainer::end() { return particles.end(); }
+bool ParticleContainer::empty() const { return size() == 0; }
 
-ParticleContainer::const_iterator ParticleContainer::begin() const { return particles.begin(); }
-
-ParticleContainer::const_iterator ParticleContainer::end() const { return particles.end(); }
-
-std::string ParticleContainer::toString() const {
-    std::string return_string = "";
-    for (const Particle &p : particles) {
-        return_string += p.toString() + "\n";
-    }
-    return return_string;
+void ParticleContainer::resetForces() {
+    std::swap(data.old_forces, data.forces);
+    std::fill(data.forces.begin(), data.forces.end(), std::array<double, 3>{0.0, 0.0, 0.0});
 }
