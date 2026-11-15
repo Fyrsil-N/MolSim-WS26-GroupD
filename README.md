@@ -20,6 +20,8 @@ instantiation are separated and the testing framework can make direct use of all
     * The `forEachPair` method can be used to apply a function to every unique pair of particles exactly once. This is
       where the forces on particles get applied.
     * `forEachPair` supports both normal serial and also parallel execution (if `OpenMP` is installed and configured).
+      **Note:** parallel execution currently does nothing, the force calculation is always serial (it will be added
+      again for the new particle containers).
     * The `reserve` method can be used to reserve space for large amounts of particles to reduce relocations of the
       vector.
 * `Particle` stores the state of a particle together with getters and setters. It implements a `noexcept` move
@@ -129,7 +131,7 @@ Usage: ./MolSim [options] <input_file>
 Options:
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
   -v, --vtk                      output simulation files using vtk (default: xyz)
-  -s, --serial                   calculate the forces serially (default: parallel)
+  -s, --serial                   calculate the forces serially (currently does nothing, forces are always calculated serially)
   -b, --benchmark                run a benchmark (disables all output and logs)
   -h, --help                     print this help and exit
 ```
@@ -170,7 +172,7 @@ this also means using the `-l` and `-v` flags in combination has **no** effect.
 Benchmarks should only be run on a release build.
 
 During a benchmark run the simulation will be executed normally on the input file (parallel or serial depending on the
-`-s` flag). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
+`-s` flag; currently always serial, so the reported thread count is only correct with `-s`). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
 `std::cout`.
 
 ```bash

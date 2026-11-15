@@ -11,8 +11,9 @@
 #include <string>
 #include <utility>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
+#include "utils/ArrayUtils.h"
 #include "forces/Gravity.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 

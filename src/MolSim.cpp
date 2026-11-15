@@ -2,7 +2,8 @@
 
 #include <filesystem>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
+#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
 #include "forces/LennardJones.h"
@@ -74,12 +75,12 @@ int main(int argc, char *argv[]) {
     spdlog::set_level(params->log_level);
 
     // create the particle container and fill it
-    ParticleContainer particles{};
+    std::unique_ptr<ParticleContainer> particles = std::make_unique<ParticleContainerDirectSum>();
 
     // read in the particles with the yml reader
     std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
     input_reader->readInSimulation(params.value());
-    input_reader->readInParticles(particles, params.value().third_dim);
+    input_reader->readInParticles(*particles, params.value().third_dim);
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
 
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]) {
     }
 
     // instantiate and start the Simulator
-    Simulator simulator{particles,     std::move(force),    params->delta_t,
+    Simulator simulator{*particles,    std::move(force),    params->delta_t,
                         params->t_end, params->omp_enabled, std::move(output_writers)};
     spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...",
                  static_cast<int>(params->t_end / params->delta_t));

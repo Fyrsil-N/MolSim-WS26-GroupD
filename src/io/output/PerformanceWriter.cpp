@@ -13,6 +13,7 @@
 namespace io {
 PerformanceWriter::PerformanceWriter(bool parallel_execution [[maybe_unused]])
     : OutputWriter(1), number_of_iterations(0), start_cpu_time(0) {
+    // Force calculation is currently always serial so only -s gives the correct thread count
 #ifdef ENABLE_OPENMP
     if (parallel_execution) {
         thread_count = omp_get_max_threads();

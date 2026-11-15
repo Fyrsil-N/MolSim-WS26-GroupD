@@ -10,7 +10,9 @@
 #include <utility>
 #include <vector>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ConstParticleHandle.h"
+#include "ParticleContainer/ParticleContainer.h"
+#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "Simulator.h"
 
 namespace {
@@ -29,12 +31,13 @@ class MockForce : public forces::PairwiseForce {
    public:
     MockForce() { ON_CALL(*this, calculateForce).WillByDefault(Return(std::array<double, 3>{1.0, 0, 0})); }
 
-    MOCK_METHOD((std::array<double, 3>), calculateForce, (const Particle &p1, const Particle &p2), (const, override));
+    MOCK_METHOD((std::array<double, 3>), calculateForce, (const ConstParticleHandle p1, const ConstParticleHandle p2),
+                (const, override));
 };
 
 class SimulatorTest : public ::testing::Test {
    protected:
-    ParticleContainer container;
+    ParticleContainerDirectSum container;
 
     SimulatorTest() {
         for (int i = 0; i < 5; i++) {

@@ -9,7 +9,7 @@
 #include "utils/ArrayUtils.h"
 
 Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::PairwiseForce> pairwise_force_arg,
-                     double delta_t_arg, double t_end_arg, bool parallel_execution_arg,
+                     double delta_t_arg, double t_end_arg, bool parallel_execution_arg [[maybe_unused]],
                      std::vector<std::unique_ptr<io::OutputWriter>> output_writers_arg)
     : particles(particles_arg),
       pairwise_force(std::move(pairwise_force_arg)),
@@ -17,20 +17,6 @@ Simulator::Simulator(ParticleContainer &particles_arg, std::unique_ptr<forces::P
       t_end(t_end_arg),
       parallel_execution_enabled(parallel_execution_arg),
       output_writers(std::move(output_writers_arg)) {}
-
-void Simulator::updateF() {
-    // move f into old_f and start a new force calculation step with f = {0.0, 0.0, 0.0}
-    for (auto &p : particles) {
-        p.resetF();
-    }
-    // compute all pairwise forces and add them to each particles force
-    // optimization: set both particles force at the same time (newtons third law)
-    // The force calculation was moved to the ParticleContainer Header to allow for parallel force calculation
-    auto helper = [this](const Particle &p1, const Particle &p2) -> std::array<double, 3> {
-        return pairwise_force->calculateForce(p1, p2);
-    };
-    particles.forEachPair(helper, parallel_execution_enabled);
-}
 
 void Simulator::updateX() {
     for (auto &p : particles) {
@@ -54,7 +40,7 @@ void Simulator::runSimulation() {
     int total_iterations = static_cast<int>(round((t_end / delta_t)));
 
     // call updateF() once before the loop to set a real starting force and not 0 for the first iteration.
-    updateF();
+    particles.updateForce(*pairwise_force);
     // record the initial state of the simulation regardless of output interval
     for (auto &writer : output_writers) {
         writer->onStep(particles, iteration, current_time);
@@ -62,7 +48,7 @@ void Simulator::runSimulation() {
 
     for (iteration = 1; iteration <= total_iterations; iteration++) {
         updateX();
-        updateF();
+        particles.updateForce(*pairwise_force);
         updateV();
 
         current_time = iteration * delta_t;

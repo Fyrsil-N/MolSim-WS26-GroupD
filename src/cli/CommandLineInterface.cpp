@@ -30,7 +30,8 @@ void printHelp(const char *program_name) {
               << "  -v, --vtk                      output simulation files using vtk (unavailable in this build)\n"
 #endif
 #ifdef ENABLE_OPENMP
-              << "  -s, --serial                   calculate the forces serially (default: parallel)\n"
+              << "  -s, --serial                   calculate the forces serially (currently does nothing, forces are "
+                 "always calculated serially)\n"
 #else
               << "  -s, --serial                   calculate the forces serially (useless in this build)\n"
 #endif
