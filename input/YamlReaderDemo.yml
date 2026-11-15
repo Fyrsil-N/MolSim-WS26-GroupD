@@ -3,6 +3,10 @@ simulation:
   end_t: 5
   out_interval: 50
   3d: true
+  pair_force:
+    Lennard-Jones:
+      sigma: 1
+      epsilon: 5
 
 scene:
   cuboids:

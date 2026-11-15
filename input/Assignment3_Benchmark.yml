@@ -1,4 +1,4 @@
-# shorter version of the assignment3 simulation so benchmarks run in reasonable time without all the optimizations
+# shorter version of the assignment3 task 2 simulation so benchmarks run in reasonable time without all the optimizations
 simulation:
   delta_t: 0.0005
   end_t: 1.6

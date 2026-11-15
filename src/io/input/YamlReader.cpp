@@ -4,6 +4,7 @@
 
 #include "YamlReader.h"
 
+#include <math.h>
 #include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
@@ -12,6 +13,7 @@
 
 #include "ParticleContainer.h"
 #include "SimulationParameters.h"
+#include "forces/Gravity.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 
 namespace io {
@@ -137,6 +139,38 @@ ShapeParameters YamlReader::parseParameters(YAML::Node root, bool third_dim) {
     return params;
 }
 
+void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &params) {
+    if (root.IsScalar()) {
+        if (root.as<std::string>() == "Lennard-Jones") {
+            params.pair_force = std::make_unique<forces::LennardJones>();
+            return;
+        }
+
+        if (root.as<std::string>() == "Gravity") {
+            params.pair_force = std::make_unique<forces::Gravity>();
+            return;
+        }
+    } else if (root["Lennard-Jones"] && root["Lennard-Jones"].IsMap()) {
+        auto lj_params = root["Lennard-Jones"];
+        double sigma = 1;
+        double epsilon = 5;
+
+        if (lj_params["sigma"]) {
+            sigma = lj_params["sigma"].as<double>(1);
+        }
+
+        if (lj_params["epsilon"]) {
+            epsilon = lj_params["epsilon"].as<double>(5);
+        }
+
+        params.pair_force = std::make_unique<forces::LennardJones>(sigma, epsilon);
+        return;
+    }
+
+    spdlog::error("YamlReader Error: couldn't parse pairwise force information.");
+    exit(EXIT_FAILURE);
+}
+
 void YamlReader::readInSimulation(SimulationParameters &params) {
     if (!file["simulation"]) {
         spdlog::info("'{}': no simulation information, using default values", filename);
@@ -151,24 +185,30 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
 
     for (auto iter = sim_data.begin(); iter != sim_data.end(); ++iter) {
         auto cur = iter->first.as<std::string>();
+        auto child = iter->second;
 
         if (cur == "delta_t") {
-            params.delta_t = iter->second.as<double>(0.014);
+            params.delta_t = child.as<double>(0.014);
             continue;
         }
 
         if (cur == "end_t") {
-            params.t_end = iter->second.as<double>(1000);
+            params.t_end = child.as<double>(1000);
             continue;
         }
 
         if (cur == "out_interval") {
-            params.output_interval = iter->second.as<int>(10);
+            params.output_interval = child.as<int>(10);
             continue;
         }
 
         if (cur == "3d") {
-            params.third_dim = iter->second.as<bool>(false);
+            params.third_dim = child.as<bool>(false);
+            continue;
+        }
+
+        if (cur == "pair_force") {
+            parsePairwiseForce(child, params);
             continue;
         }
 

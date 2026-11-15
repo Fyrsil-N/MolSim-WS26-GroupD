@@ -18,12 +18,24 @@ class LennardJones : public PairwiseForce {
 
    public:
     /**
+     * Default constructor
+     */
+    LennardJones() = default;
+
+    /**
+     * Constructor allowing force parameterization
+     * @param sigma Distance where LJ(sigma) = 0
+     * @param epsilon Depth of potential well
+     */
+    LennardJones(const double sigma, const double epsilon) : sigma(sigma), epsilon(epsilon) {}
+
+    /**
      * Compute the Lennard-Jones force on p1 exerted by p2.
      * @param p1 particle 1
      * @param p2 particle 2
      * @return Lennard-Jones potential on p1 exerted by p2 in 3D space
      */
-    inline std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override {
+    std::array<double, 3> calculateForce(const Particle &p1, const Particle &p2) const override {
         const auto diff = p2.getX() - p1.getX();
         const double inv_r2 = 1 / ArrayUtils::squaredL2Norm(diff);
 

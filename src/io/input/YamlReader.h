@@ -52,12 +52,19 @@ class YamlReader : public InputReader {
     static void generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, bool third_dim);
 
     /**
-     * Parses all necessary parameters to create a shape from a given yaml root node
+     * Parses all necessary parameters to create a shape from a given YAML root node
      * @param root the root node of the data to parse
      * @param third_dim Whether the third spatial dimension is enabled
      * @return a ShapeParameters struct containing all necessary information for generating the desired shape
      */
     static ShapeParameters parseParameters(YAML::Node root, bool third_dim);
+
+    /**
+     * Parses which pairwise force to be used for the simulation
+     * @param root the root node of the data to parse
+     * @param params SimulationParameters to write the results into
+     */
+    static void parsePairwiseForce(YAML::Node root, SimulationParameters &params);
 
     /**
      * Iterate over every instance of a shape and generate it using its dedicated generator function

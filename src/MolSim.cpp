@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
 
     // instantiate (and combine if necessary) the forces to be used in the simulation
-    std::unique_ptr<forces::PairwiseForce> force = std::make_unique<forces::LennardJones>();
+    std::unique_ptr<forces::PairwiseForce> force = std::move(params->pair_force);
 
     // disable in-simulation logging for benchmarks
     if (params->benchmark_run) {

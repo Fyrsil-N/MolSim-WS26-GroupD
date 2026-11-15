@@ -8,6 +8,8 @@
 #include <array>
 #include <string>
 
+#include "forces/LennardJones.h"
+
 /**
  * Parameters for a simulation run
  */
@@ -33,13 +35,6 @@ struct SimulationParameters {
     bool third_dim = false;
 
     /**
-     * Number of spatial dimensions of the simulation (2 or 3).
-     * For 2D all particles lay in the z = 0 plane and no brownian motion is applied so they stay there.
-     * The linked cells algorithm also ignored the z dimension and doesn't add halo cells there.
-     */
-    int dimensions = 2;
-
-    /**
      * Cut off radius for the linked cell algorithm
      */
     double r_cutoff = 3.0;
@@ -59,6 +54,11 @@ struct SimulationParameters {
      * The program generates an output state every output_interval iterations
      */
     int output_interval = 10;
+
+    /**
+     * The force to be applied to every pair of particles
+     */
+    std::unique_ptr<forces::PairwiseForce> pair_force = std::make_unique<forces::LennardJones>();
 
     /**
      * VTK output flag (xyz if false)
