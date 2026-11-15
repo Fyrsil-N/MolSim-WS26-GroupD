@@ -13,8 +13,8 @@
 
 #include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
-#include "utils/ArrayUtils.h"
 #include "forces/Gravity.h"
+#include "utils/ArrayUtils.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 
 namespace io {
@@ -95,8 +95,6 @@ void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &p
             }
         }
     }
-
-    particles.shrinkToFit();
 
     spdlog::debug("Ellipsoid generated at ({}, {}, {}) with dimensions {}x{}x{}, h={}, m={}, type={}",
                   params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2),
