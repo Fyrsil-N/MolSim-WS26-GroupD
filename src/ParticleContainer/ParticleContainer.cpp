@@ -14,6 +14,14 @@ void ParticleContainer::reserve(std::size_t n) {
     data.masses.reserve(n);
     data.types.reserve(n);
 }
+void ParticleContainer::shrinkToFit() {
+    data.positions.shrink_to_fit();
+    data.velocities.shrink_to_fit();
+    data.forces.shrink_to_fit();
+    data.old_forces.shrink_to_fit();
+    data.masses.shrink_to_fit();
+    data.types.shrink_to_fit();
+}
 
 void ParticleContainer::emplaceBack(const std::array<double, 3> &x_arg, const std::array<double, 3> &v_arg,
                                     double m_arg, int type) {

@@ -65,6 +65,11 @@ class ParticleContainer {
     void reserve(std::size_t n);
 
     /**
+     * Attempt to free any unused reserved storage
+     */
+    void shrinkToFit();
+
+    /**
      * Creates a particle  and inserts it at the end of the Container (mirrors old Particle Constructor)
      * @param x_arg initial (x, y, z) position of the particle
      * @param v_arg initial velocity in 3D space

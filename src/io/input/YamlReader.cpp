@@ -96,10 +96,11 @@ void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &p
         }
     }
 
+    particles.shrinkToFit();
+
     spdlog::debug("Ellipsoid generated at ({}, {}, {}) with dimensions {}x{}x{}, h={}, m={}, type={}",
-                  params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2),
-                  params.particle_dims.at(0), params.particle_dims.at(1), params.particle_dims.at(2), params.spacing,
-                  params.particle_mass, params.type);
+                  params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2), a, b, c,
+                  params.spacing, params.particle_mass, params.type);
 }
 
 ShapeParameters YamlReader::parseParameters(YAML::Node root, bool third_dim) {
