@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
 
 namespace io {

@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
 #include "forces/LennardJones.h"

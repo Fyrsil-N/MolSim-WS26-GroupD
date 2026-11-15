@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "io/input/YamlReader.h"
 
 namespace {

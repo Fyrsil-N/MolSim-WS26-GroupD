@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "Simulator.h"
 
 namespace {

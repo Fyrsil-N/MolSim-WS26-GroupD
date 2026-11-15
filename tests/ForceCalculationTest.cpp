@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cstddef>
 
-#include "Particle.h"
+#include "ParticleContainer/Particle.h"
 #include "forces/LennardJones.h"
 #include "utils/ArrayUtils.h"
 

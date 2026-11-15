@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "forces/PairwiseForce.h"
 #include "io/output/OutputWriter.h"
 

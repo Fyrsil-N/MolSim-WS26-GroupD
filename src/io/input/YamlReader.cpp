@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 

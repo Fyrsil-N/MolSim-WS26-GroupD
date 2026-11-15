@@ -5,7 +5,7 @@
 #pragma once
 
 #include "InputReader.h"
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "ShapeParameters.h"
 #include "SimulationParameters.h"
 #include "yaml-cpp/yaml.h"

@@ -6,7 +6,7 @@
 
 #include <array>
 
-#include "Particle.h"
+#include "ParticleContainer/Particle.h"
 
 /**
  * Namespace forces groups types of forces that can act on particles.

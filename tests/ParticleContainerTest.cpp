@@ -9,7 +9,7 @@
 #include <set>
 #include <utility>
 
-#include "ParticleContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 
 namespace {
 class ParticleContainerTest : public ::testing::Test {
