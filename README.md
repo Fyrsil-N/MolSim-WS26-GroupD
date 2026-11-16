@@ -114,6 +114,30 @@ rm -rf build
   before any commit).
 * `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled in cmake configuration)
 
+
+### Scene building
+
+Defining simulation parameters and particle positions happens in YAML input files. A demonstration file can be found inside the input folder which demonstrates most of the functionality (`input/YamlReaderDemo.yml`).
+
+The input is split into two main parts:
+
+#### Simulation:
+Inside the simulation map, we define:
+* size of each timestep (`delta_t`)
+* end time (`end_t`)
+* output frequency (`out_interval`)
+* spatial dimensions (`3d`: true/false)
+
+as well as choose and (if desired) parametrize forces acting upon the particles. Available pairwise forces are Gravity and Lennard-Jones. Lennard-Jones can be parametrized by changing its `sigma`, `epsilon` and `cutoff` variables.
+
+#### Scene:
+Inside the scene map, we can generate different arrangements of particles:
+* Cuboids
+* Ellipsoids
+* Singular particles
+
+They all take the same parameters (`anchor_point`, `dimensions`, `velocity`, `spacing`, `mass`, `type`). Multiple versions of one shape type can be generated using sequences.
+
 ### Execution
 
 Run the final executable inside `build/`.
