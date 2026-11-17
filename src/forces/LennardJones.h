@@ -40,18 +40,20 @@ class LennardJones : public PairwiseForce {
      */
     inline std::array<double, 3> calculateForce(const ConstParticleHandle p1,
                                                 const ConstParticleHandle p2) const override {
+        // @TODO make this function inlinable (currently the interface blocks that)
+        // @TODO make the cutoff radius check optional for the direct sum implementation
         const auto diff = p2.getX() - p1.getX();
-        const double inv_r2 = 1 / ArrayUtils::squaredL2Norm(diff);
+        const double r2 = ArrayUtils::squaredL2Norm(diff);
 
-        if (inv_r2 < 1 / cutoff) {
+        if (r2 > cutoff * cutoff) {
             return {0, 0, 0};
         }
 
         // power calls are expensive so use simple multiplication instead
-        const double sigma2_over_r2 = sigma * sigma * inv_r2;
+        const double sigma2_over_r2 = sigma * sigma * (1 / r2);
         const double sigma6_over_r6 = sigma2_over_r2 * sigma2_over_r2 * sigma2_over_r2;
 
-        return 24 * epsilon * inv_r2 * (sigma6_over_r6 - 2 * sigma6_over_r6 * sigma6_over_r6) * diff;
+        return 24 * epsilon * (1 / r2) * (sigma6_over_r6 - 2 * sigma6_over_r6 * sigma6_over_r6) * diff;
     }
 };
 

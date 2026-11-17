@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "ParticleContainer/ConstParticleHandle.h"
+#include "ParticleContainer/DirectSumContainer.h"
 #include "ParticleContainer/ParticleContainer.h"
-#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "Simulator.h"
 
 namespace {
@@ -37,7 +37,7 @@ class MockForce : public forces::PairwiseForce {
 
 class SimulatorTest : public ::testing::Test {
    protected:
-    ParticleContainerDirectSum container;
+    DirectSumContainer container;
 
     SimulatorTest() {
         for (int i = 0; i < 5; i++) {

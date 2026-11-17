@@ -2,8 +2,9 @@
 
 #include <filesystem>
 
+#include "ParticleContainer/DirectSumContainer.h"
+#include "ParticleContainer/LinkedCellContainer.h"
 #include "ParticleContainer/ParticleContainer.h"
-#include "ParticleContainer/ParticleContainerDirectSum.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
 #include "forces/LennardJones.h"
@@ -75,7 +76,9 @@ int main(int argc, char *argv[]) {
     spdlog::set_level(params->log_level);
 
     // create the particle container and fill it
-    std::unique_ptr<ParticleContainer> particles = std::make_unique<ParticleContainerDirectSum>();
+    //@TODO make the different Particle Containers selectable
+    std::unique_ptr<ParticleContainer> particles = std::make_unique<LinkedCellContainer>(
+        params->domain_anchor, params->domain_dimensions, params->third_dim, params->r_cutoff);
 
     // read in the particles with the yml reader
     std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);

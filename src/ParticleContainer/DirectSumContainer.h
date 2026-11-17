@@ -12,7 +12,7 @@
 /**
  * This version of the ParticleContainer implements calculating the forces for the particles via the direct n^2 loop
  */
-class ParticleContainerDirectSum : public ParticleContainer {
+class DirectSumContainer : public ParticleContainer {
    public:
     /**
      * Calculate the forces on the particles in the next timestep.

@@ -10,12 +10,12 @@
 #include <utility>
 
 #include "ParticleContainer/ConstParticleHandle.h"
-#include "ParticleContainer/ParticleContainerDirectSum.h"
+#include "ParticleContainer/DirectSumContainer.h"
 #include "forces/PairwiseForce.h"
 
 namespace {
 // Expose the memory address of the data so that we can check for relocations later on
-class InspectableContainer : public ParticleContainerDirectSum {
+class InspectableContainer : public DirectSumContainer {
    public:
     const void *positionsAddress() const { return data.positions.data(); }
 };
@@ -96,7 +96,7 @@ TEST_F(ParticleContainerTest, reserve) {
     }
 }
 
-// Test that ParticleContainerDirectSum::updateForce actually goes over each unique pair exactly once
+// Test that DirectSumContainer::updateForce actually goes over each unique pair exactly once
 TEST_F(ParticleContainerTest, updateForce) {
     CallCountingForce force;
 
@@ -116,7 +116,7 @@ TEST(ParticleContainerForceTest, updateForceAccumulatesForces) {
     // pair (0, 1) -> 2, pair (0, 2) -> 3, pair (1, 2) -> 6
     constexpr std::array<double, 3> expected = {2.0 + 3.0, -2.0 + 6.0, -3.0 - 6.0};
 
-    ParticleContainerDirectSum container;
+    DirectSumContainer container;
     for (int i = 0; i < 3; i++) {
         container.emplaceBack({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, 1.0, i);
     }
