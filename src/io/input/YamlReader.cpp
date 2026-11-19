@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 
+#include "ParticleContainer/LinkedCellContainer.h"
 #include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
 #include "forces/Gravity.h"
@@ -32,7 +33,7 @@ YamlReader::YamlReader(std::string filename) : filename(std::move(filename)) {
     }
 }
 
-void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
+void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
     particles.reserve(params.particle_dims.at(0) * params.particle_dims.at(1) * params.particle_dims.at(2));
     for (size_t x = 0; x < params.particle_dims.at(0); ++x) {
         for (size_t y = 0; y < params.particle_dims.at(1); ++y) {
@@ -53,13 +54,13 @@ void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &part
                   params.particle_mass, params.type);
 }
 
-void YamlReader::generateParticle(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
+void YamlReader::generateParticle(const ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
     particles.emplaceBack(params.anchor_point,
                           params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
                           params.particle_mass, params.type);
 }
 
-void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, bool third_dim) {
+void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
     auto a = static_cast<long long>(params.particle_dims.at(0));
     auto b = static_cast<long long>(params.particle_dims.at(1));
     auto c = static_cast<long long>(params.particle_dims.at(2));
@@ -77,9 +78,9 @@ void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &p
                 }
 
                 for (int i = 0; i < (third_dim ? 8 : 4); ++i) {
-                    int x_sign = i % 2 < 1 ? -1 : 1;
-                    int y_sign = i % 4 < 2 ? -1 : 1;
-                    int z_sign = i % 8 < 4 ? -1 : 1;
+                    const int x_sign = i % 2 < 1 ? -1 : 1;
+                    const int y_sign = i % 4 < 2 ? -1 : 1;
+                    const int z_sign = i % 8 < 4 ? -1 : 1;
 
                     std::array<double, 3> pos{};
                     pos.at(0) = params.anchor_point.at(0) + x_sign * (static_cast<double>(x) + 0.5) * params.spacing;
@@ -103,7 +104,7 @@ void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &p
                   params.spacing, params.particle_mass, params.type);
 }
 
-ShapeParameters YamlReader::parseParameters(YAML::Node root, bool third_dim) {
+ShapeParameters YamlReader::parseShapeParams(YAML::Node root, const bool third_dim) {
     ShapeParameters params;
 
     if (root["anchor_point"]) {
@@ -166,6 +167,8 @@ void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &param
 
         if (lj_params["cutoff"]) {
             cutoff = lj_params["cutoff"].as<double>(3);
+            params.particle_container = std::make_unique<LinkedCellContainer>(
+                LinkedCellContainer(params.domain_anchor, params.domain_dimensions, params.third_dim, cutoff));
         }
 
         params.pair_force = std::make_unique<forces::LennardJones>(sigma, epsilon, cutoff);
@@ -174,6 +177,82 @@ void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &param
 
     spdlog::error("YamlReader Error: couldn't parse pairwise force information.");
     exit(EXIT_FAILURE);
+}
+
+std::array<bool, 2> YamlReader::parseDomainBehavior(const std::array<std::string, 2> &str_bounds) {
+    std::array<bool, 2> result{};
+    for (int i = 0; i < 2; i++) {
+        if (str_bounds.at(i) == "reflecting") {
+            result.at(i) = true;
+            continue;
+        }
+
+        if (str_bounds.at(i) == "outflow") {
+            result.at(i) = false;
+            continue;
+        }
+
+        spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    return result;
+}
+
+void YamlReader::parseDomainParams(YAML::Node root, SimulationParameters &params) {
+    if (root["anchor_point"]) {
+        params.domain_anchor = root["anchor_point"].as<std::array<double, 3>>(std::array<double, 3>{0, 0, 0});
+    }
+
+    if (root["dimensions"]) {
+        params.domain_dimensions = root["dimensions"].as<std::array<double, 3>>(std::array<double, 3>{100, 100, 100});
+    }
+
+    if (root["boundaries"]) {
+        if (!root.IsMap()) {
+            spdlog::error("'{}': boundaries information should be map.", filename);
+            exit(EXIT_FAILURE);
+        }
+
+        for (auto iter = root["boundaries"].begin(); iter != root["boundaries"].end(); ++iter) {
+            if (!iter->first.IsScalar()) {
+                spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
+                exit(EXIT_FAILURE);
+            }
+
+            auto cur = iter->first.as<std::string>();
+            auto bounds = parseDomainBehavior(iter->second.as<std::array<std::string, 2>>());
+
+            if (cur == "x") {
+                for (int i = 0; i < 2; i++) {
+                    params.boundary_conditions.at(i) = bounds.at(i);
+                }
+                continue;
+            }
+
+            if (cur == "y") {
+                for (int i = 0; i < 2; i++) {
+                    params.boundary_conditions.at(i + 2) = bounds.at(i);
+                }
+                continue;
+            }
+
+            if (params.third_dim && cur == "z") {
+                for (int i = 0; i < 2; i++) {
+                    params.boundary_conditions.at(i + 4) = bounds.at(i);
+                }
+                continue;
+            }
+
+            spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (!params.third_dim) {
+        params.domain_anchor.at(2) = 0;
+        params.domain_dimensions.at(2) = 1;
+    }
 }
 
 void YamlReader::readInSimulation(SimulationParameters &params) {
@@ -212,6 +291,11 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
             continue;
         }
 
+        if (cur == "domain") {
+            parseDomainParams(child, params);
+            continue;
+        }
+
         if (cur == "pair_force") {
             parsePairwiseForce(child, params);
             continue;
@@ -226,7 +310,7 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
     }
 }
 
-void YamlReader::readInParticles(ParticleContainer &particles, bool third_dim) {
+void YamlReader::readInParticles(ParticleContainer &particles, const bool third_dim) {
     if (!file["scene"]) {
         spdlog::info("'{}': no scene information", filename);
         return;
@@ -263,6 +347,11 @@ void YamlReader::readInParticles(ParticleContainer &particles, bool third_dim) {
         spdlog::error("'{}': couldn't parse scene information.", filename);
         exit(EXIT_FAILURE);
     }
+}
+
+void YamlReader::readInput(SimulationParameters &params) {
+    readInSimulation(params);
+    readInParticles(*params.particle_container, params.third_dim);
 }
 
 }  // namespace io

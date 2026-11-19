@@ -8,6 +8,8 @@
 #include <array>
 #include <string>
 
+#include "ParticleContainer/DirectSumContainer.h"
+#include "ParticleContainer/ParticleContainer.h"
 #include "forces/LennardJones.h"
 
 /**
@@ -51,6 +53,14 @@ struct SimulationParameters {
     std::array<double, 3> domain_dimensions = {180, 90, 6};
 
     /**
+     * Boundary condition for each spatial boundary. Indices 4 and 5 can be ignored
+     * if no third spatial dimension is enabled.
+     * True <=> Reflecting
+     * False <=> Outflow
+     */
+    std::array<double, 6> boundary_conditions;
+
+    /**
      * The program generates an output state every output_interval iterations
      */
     int output_interval = 10;
@@ -59,6 +69,11 @@ struct SimulationParameters {
      * The force to be applied to every pair of particles
      */
     std::unique_ptr<forces::PairwiseForce> pair_force = std::make_unique<forces::LennardJones>();
+
+    /**
+     * The particle container to store all particles in
+     */
+    std::unique_ptr<ParticleContainer> particle_container = std::make_unique<DirectSumContainer>();
 
     /**
      * VTK output flag (xyz if false)

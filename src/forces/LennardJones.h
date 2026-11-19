@@ -15,7 +15,7 @@ class LennardJones : public PairwiseForce {
    protected:
     double sigma = 1;
     double epsilon = 5;
-    double cutoff = 3;
+    double cutoff = -1;
 
    public:
     /**
@@ -33,6 +33,13 @@ class LennardJones : public PairwiseForce {
         : sigma(sigma), epsilon(epsilon), cutoff(cutoff) {}
 
     /**
+     * Constructor allowing force parameterization
+     * @param sigma Distance where LJ(sigma) = 0
+     * @param epsilon Depth of potential well
+     */
+    LennardJones(const double sigma, const double epsilon) : sigma(sigma), epsilon(epsilon) {}
+
+    /**
      * Compute the Lennard-Jones force on p1 exerted by p2.
      * @param p1 particle 1
      * @param p2 particle 2
@@ -45,7 +52,7 @@ class LennardJones : public PairwiseForce {
         const auto diff = p2.getX() - p1.getX();
         const double r2 = ArrayUtils::squaredL2Norm(diff);
 
-        if (r2 > cutoff * cutoff) {
+        if (cutoff > 0 && r2 > cutoff * cutoff) {
             return {0, 0, 0};
         }
 

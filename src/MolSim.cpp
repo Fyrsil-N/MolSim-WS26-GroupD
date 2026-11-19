@@ -75,15 +75,9 @@ int main(int argc, char *argv[]) {
     // set the log level
     spdlog::set_level(params->log_level);
 
-    // create the particle container and fill it
-    //@TODO make the different Particle Containers selectable
-    std::unique_ptr<ParticleContainer> particles = std::make_unique<LinkedCellContainer>(
-        params->domain_anchor, params->domain_dimensions, params->third_dim, params->r_cutoff);
-
     // read in the particles with the yml reader
     std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
-    input_reader->readInSimulation(params.value());
-    input_reader->readInParticles(*particles, params.value().third_dim);
+    input_reader->readInput(params.value());
     // set up the output methods
     std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
 
@@ -97,8 +91,8 @@ int main(int argc, char *argv[]) {
     }
 
     // instantiate and start the Simulator
-    Simulator simulator{*particles,    std::move(force),    params->delta_t,
-                        params->t_end, params->omp_enabled, std::move(output_writers)};
+    Simulator simulator{*params->particle_container, std::move(force),         params->delta_t, params->t_end,
+                        params->omp_enabled,         std::move(output_writers)};
     spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...",
                  static_cast<int>(params->t_end / params->delta_t));
     simulator.runSimulation();

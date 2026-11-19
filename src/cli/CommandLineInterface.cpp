@@ -19,7 +19,6 @@ namespace {
  * print the help message for the program
  */
 void printHelp(const char *program_name) {
-    const SimulationParameters defaults;
     std::cout << "Usage: " << program_name << " [options] <input_file>\n"
               << "\n"
               << "Options:\n"

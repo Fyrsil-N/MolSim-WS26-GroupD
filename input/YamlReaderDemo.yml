@@ -3,10 +3,21 @@ simulation:
   end_t: 5
   out_interval: 50
   3d: true
+  domain:
+    anchor_point: [-40, -80, -120]
+    dimensions: [60, 150, 250]
+    boundaries:
+      # +x, -x
+      x: [reflecting, reflecting]
+      # +y, -y
+      y: [outflow, reflecting]
+      # +z, -z
+      z: [outflow, outflow]
   pair_force:
     Lennard-Jones:
       sigma: 1
       epsilon: 5
+      # !!! if no cutoff is given the simulator will use the slower DirectSumContainer
       cutoff: 3
 # Can also be:
 # pair_force: Gravity

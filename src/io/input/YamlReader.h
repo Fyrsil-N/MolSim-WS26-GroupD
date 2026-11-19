@@ -41,7 +41,7 @@ class YamlReader : public InputReader {
      * @param particles ParticleContainer to store all the newly generated particles
      * @param third_dim Whether the third spatial dimension is enabled
      */
-    static void generateParticle(ShapeParameters &params, ParticleContainer &particles, bool third_dim);
+    static void generateParticle(const ShapeParameters &params, ParticleContainer &particles, bool third_dim);
 
     /**
      * Generates an ellipsoid based on given parameters.
@@ -57,7 +57,7 @@ class YamlReader : public InputReader {
      * @param third_dim Whether the third spatial dimension is enabled
      * @return a ShapeParameters struct containing all necessary information for generating the desired shape
      */
-    static ShapeParameters parseParameters(YAML::Node root, bool third_dim);
+    static ShapeParameters parseShapeParams(YAML::Node root, bool third_dim);
 
     /**
      * Parses which pairwise force to be used for the simulation
@@ -65,6 +65,20 @@ class YamlReader : public InputReader {
      * @param params SimulationParameters to write the results into
      */
     static void parsePairwiseForce(YAML::Node root, SimulationParameters &params);
+
+    /**
+     * Parses the domain boundaries' behavior from the string arrays gained from the input file
+     * @param str_bounds the string array to parse
+     * @return an array containing the boundary behavior as bool
+     */
+    std::array<bool, 2> parseDomainBehavior(const std::array<std::string, 2> &str_bounds);
+
+    /**
+     * Parses all necessary parameters for the simulation bounds
+     * @param root the root node of the data to parse
+     * @param params SimulationParameters to write the results into
+     */
+    void parseDomainParams(YAML::Node root, SimulationParameters &params);
 
     /**
      * Iterate over every instance of a shape and generate it using its dedicated generator function
@@ -82,7 +96,7 @@ class YamlReader : public InputReader {
                 exit(EXIT_FAILURE);
             }
 
-            ShapeParameters params = parseParameters(iter->as<YAML::Node>(), third_dim);
+            ShapeParameters params = parseShapeParams(iter->as<YAML::Node>(), third_dim);
             f(params, particles, third_dim);
         }
     }
@@ -98,13 +112,19 @@ class YamlReader : public InputReader {
      * Read in global simulation settings like domain size, output interval, start and end time
      * @param params SimulationParameters to fill out
      */
-    void readInSimulation(SimulationParameters &params) override;
+    void readInSimulation(SimulationParameters &params);
 
     /**
      * Read in initial particle data from the input file of the class and store the new particles in the container.
      * @param particles ParticleContainer to store all the newly generated particles
      * @param third_dim Whether the third spatial dimension is enabled
      */
-    void readInParticles(ParticleContainer &particles, bool third_dim) override;
+    void readInParticles(ParticleContainer &particles, bool third_dim);
+
+    /**
+     * Read in all data necessary for simulation from the input file
+     * @param params SimulationParameters struct to fill
+     */
+    void readInput(SimulationParameters &params) override;
 };
 }  // namespace io

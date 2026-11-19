@@ -28,7 +28,7 @@ class PairwiseForce {
      * @param p2 particle 2
      * @return the force on p1 caused by p2 as a Vector in 3D space
      */
-    virtual std::array<double, 3> calculateForce(const ConstParticleHandle p1, const ConstParticleHandle p2) const = 0;
+    virtual std::array<double, 3> calculateForce(ConstParticleHandle p1, ConstParticleHandle p2) const = 0;
 };
 
 }  // namespace forces
