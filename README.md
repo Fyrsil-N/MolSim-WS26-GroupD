@@ -13,20 +13,19 @@ instantiation are separated and the testing framework can make direct use of all
 * `Simulator` owns all parts of the program related to physical updates and the main simulation loop.
     * The main simulation loop follows the Störmer–Verlet order (x → F → v).
     * The specific force used for the update can be passed in via an interface (see `forces` namespace).
-* `ParticleContainer` is a Struct Of Arrays data-structure to allow for vectorized and cache friendly operations.
-    * The particle class was fully eliminated to get rid of an expensive indirection in hot loop
-    * `ParticleContainer` now wraps the `PartileData` struct which stores all particle attributes directly in vectors
-    * `ParticleContainer` still provides easy for-range style loop over a `ParticleHandle` and an Iterator
-    * The `ParticleHandle` doesn't store any data itself and instead directly reads into the Data struct because it is a
-      `friend` class of the `ParticleContainer`
-    * The `reserve` method can be used to reserve space for large amounts of particles to reduce relocations
-* The child classes of `ParticleContainer` `DirectSumContainer` and `LinkedCellContainer` provide different
-  implementations of updating the pairwise forces acting on the particles
-    * `DirectSum` loops over all unique pairs of particles and updates the force in O (n^2)
-    * `LinkedCell` instead makes use of the linked cell algorithm and a cutoff radius of the pairwise force to reduce
-      the loop to ~O (n)
-    * Both implementations make use of Newton's third law and update the forces of both particles at the same time with
-      opposite signs. This halves the number of force calculations.
+    * To make the pairwise force calculation more efficient, we make use of Newton's third law and update the forces of
+      both particles at the same time with opposite signs. This halves the number of force calculations.
+* `ParticleContainer` is based on a `std::vector`, as it provides an extendable but still cache-friendly data structure.
+    * We pass through the iterators of the vector for use in range-based for loops.
+    * The `forEachPair` method can be used to apply a function to every unique pair of particles exactly once. This is
+      where the forces on particles get applied.
+    * `forEachPair` supports both normal serial and also parallel execution (if `OpenMP` is installed and configured).
+      **Note:** parallel execution currently does nothing, the force calculation is always serial (it will be added
+      again for the new particle containers).
+    * The `reserve` method can be used to reserve space for large amounts of particles to reduce relocations of the
+      vector.
+* `Particle` stores the state of a particle together with getters and setters. It implements a `noexcept` move
+  constructor to avoid expensive copy operations. The simulation currently runs without ever copying a particle.
 * **Pattern**: Iterator, so implementation details of the Container are hidden.
 
 ### Physical forces: `namespace forces`
@@ -42,7 +41,6 @@ instantiation are separated and the testing framework can make direct use of all
   similar pattern.
 * Combining multiple forces is also possible in theory. As long as the `calculateForce` signature is maintained multiple
   forces can be grouped into one and passed to the simulator.
-* To make using the linked cell algorithm possible `Lennard Jones` supports a cutoff radius after which all forces are 0
 * **Pattern**: Strategy, so a new force is just another subclass and doesn't change the Simulator.
 
 ### Input and output: `namespace io`
@@ -60,8 +58,7 @@ instantiation are separated and the testing framework can make direct use of all
     * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided
       `ParticleContainer`s and `SimulationParameter`s.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
-    * The `YamlReader` initializes the simulation with arbitrary arrangements of particles into shapes and single
-      particles.
+    * The `YamlReader` initializes the simulation with arbitrary arrangements of particles into shapes and single particles.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
@@ -78,38 +75,6 @@ instantiation are separated and the testing framework can make direct use of all
 * `MolSim.cpp` is the main file of the program. It is not supposed to touch any logic or do any computations.
 * It creates all the necessary components like readers, writers, force and the simulation, combines them and starts the
   simulation run.
-
-## Input File Format .yml
-
-### Scene building
-
-Defining simulation parameters and particle positions happens in YAML input files. A demonstration file can be found
-inside the input folder which demonstrates most of the functionality (`input/YamlReaderDemo.yml`).
-
-The input is split into two main parts:
-
-#### Simulation:
-
-Inside the simulation map, we define:
-
-* size of each timestep (`delta_t`)
-* end time (`end_t`)
-* output frequency (`out_interval`)
-* spatial dimensions (`3d`: true/false)
-
-as well as choose and (if desired) parametrize forces acting upon the particles. Available pairwise forces are Gravity
-and Lennard-Jones. Lennard-Jones can be parametrized by changing its `sigma`, `epsilon` and `cutoff` variables.
-
-#### Scene:
-
-Inside the scene map, we can generate different arrangements of particles:
-
-* Cuboids
-* Ellipsoids
-* Singular particles
-
-They all take the same parameters (`anchor_point`, `dimensions`, `velocity`, `spacing`, `mass`, `type`). Multiple
-versions of one shape type can be generated using sequences.
 
 ## Usage
 
@@ -148,6 +113,32 @@ rm -rf build
 * `make format` uses clang-format and the `.clang-format` template to ensure consistent formatting of the project (run
   before any commit).
 * `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled in cmake configuration)
+
+
+### Scene building
+
+Defining simulation parameters and particle positions happens in YAML input files. A demonstration file can be found inside the input folder which demonstrates most of the functionality (`input/YamlReaderDemo.yml`).
+
+The input is split into two main parts:
+
+#### Simulation:
+Inside the simulation map, we define:
+* size of each timestep (`delta_t`)
+* end time (`end_t`)
+* output frequency (`out_interval`)
+* spatial dimensions (`3d`: true/false)
+
+as well as choose and (if desired) parametrize forces acting upon the particles. Available pairwise forces are Gravity and Lennard-Jones. Lennard-Jones can be parametrized by changing its `sigma`, `epsilon` and `cutoff` variables. If `cutoff` is set, the simulation will automatically select the faster `LinkedCellContainer` instead of the `DirectSumContainer`. 
+
+The simulation bounds can also be set by specifying an `anchor_point` and `dimensions`. The behavior (reflecting/outflow) at the boundaries on each axis can also be parametrized.
+
+#### Scene:
+Inside the scene map, we can generate different arrangements of particles:
+* Cuboids
+* Ellipsoids
+* Singular particles
+
+They all take the same parameters (`anchor_point`, `dimensions`, `velocity`, `spacing`, `mass`, `type`). Multiple versions of one shape type can be generated using sequences.
 
 ### Execution
 
@@ -207,8 +198,7 @@ this also means using the `-l` and `-v` flags in combination has **no** effect.
 Benchmarks should only be run on a release build.
 
 During a benchmark run the simulation will be executed normally on the input file (parallel or serial depending on the
-`-s` flag; currently always serial, so the reported thread count is only correct with `-s`). In the end a summary over
-total runtime, cpu runtime, iterations and other statistics will be printed to
+`-s` flag; currently always serial, so the reported thread count is only correct with `-s`). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
 `std::cout`.
 
 ```bash
