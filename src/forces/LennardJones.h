@@ -41,6 +41,7 @@ class LennardJones : public PairwiseForce {
 
     /**
      * Compute the Lennard-Jones force on p1 exerted by p2.
+     * If a cutoff > 0 is set particles with a distance greater the cutoff get a force = 0.
      * @param p1 particle 1
      * @param p2 particle 2
      * @return Lennard-Jones potential on p1 exerted by p2 in 3D space
