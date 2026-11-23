@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
 
 namespace io {
@@ -15,10 +16,18 @@ class InputReader {
     virtual ~InputReader() = default;
 
     /**
-     * Read in all data necessary for simulation from the input file
-     * Replaces readInSimulation and readInParticles
-     * @param params SimulationParameters struct to fill
+     * Read in global simulation settings like domain size, output interval, start and end time
+     * @param params SimulationParameters to fill out
+     * @throws io::InputError
      */
-    virtual void readInput(SimulationParameters &params) = 0;
+    virtual void readInSimulation(SimulationParameters &params) = 0;
+
+    /**
+     * Read in initial particle data from the input file of the class and store the new particles in the container.
+     * @param particles ParticleContainer to store all the newly generated particles
+     * @param third_dim Whether the third spatial dimension is enabled
+     * @throws io::InputError
+     */
+    virtual void readInParticles(ParticleContainer &particles, bool third_dim) = 0;
 };
 }  // namespace io

@@ -54,8 +54,8 @@ TEST(LennardJonesTest, calculateForce2) {
     auto p1 = container.getHandle(0);
     auto p2 = container.getHandle(1);
 
-    const auto force1 = forces::LennardJones().calculateForce(p1, p2);
-    const auto force2 = forces::LennardJones().calculateForce(p2, p1);
+    const auto force1 = forces::LennardJones(1, 5).calculateForce(p1, p2);
+    const auto force2 = forces::LennardJones(1, 5).calculateForce(p2, p1);
 
     // test antisymmetry
     for (std::size_t j = 0; j < force1.size(); j++) {

@@ -1,14 +1,18 @@
 #include <spdlog/spdlog.h>
 
+#include <exception>
 #include <filesystem>
+#include <stdexcept>
 
 #include "ParticleContainer/DirectSumContainer.h"
 #include "ParticleContainer/LinkedCellContainer.h"
 #include "ParticleContainer/ParticleContainer.h"
 #include "Simulator.h"
 #include "cli/CommandLineInterface.h"
+#include "forces/Gravity.h"
 #include "forces/LennardJones.h"
 #include "forces/PairwiseForce.h"
+#include "io/input/InputError.h"
 #include "io/input/InputReader.h"
 #include "io/input/YamlReader.h"
 #include "io/output/PerformanceWriter.h"
@@ -48,14 +52,13 @@ std::vector<std::unique_ptr<io::OutputWriter>> setupOutputWriters(const Simulati
 
     if (params.vtk_output) {
 #ifdef ENABLE_VTK_OUTPUT
-        std::string out_name(out_dir.string() + "/MD_vtk");
+        std::string out_name(out_dir.string() + "/" + params.output_file_basename);
         output_writers.push_back(std::make_unique<io::VTKWriter>(params.output_interval, out_name));
 #else  // safeguard, should never be reached (cli::parseArguments already rejects -v)
-        spdlog::error("invalid flag -v set: VTK output is not available in this build");
-        std::exit(EXIT_FAILURE);
+        throw std::logic_error("invalid flag -v set: VTK output is not available in this build");
 #endif
     } else {
-        std::string out_name(out_dir.string() + "/MD_XYZ");
+        std::string out_name(out_dir.string() + "/" + params.output_file_basename);
         output_writers.push_back(std::make_unique<io::XYZWriter>(params.output_interval, out_name));
     }
 
@@ -75,27 +78,60 @@ int main(int argc, char *argv[]) {
     // set the log level
     spdlog::set_level(params->log_level);
 
-    // read in the particles with the yml reader
-    std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
-    input_reader->readInput(params.value());
-    // set up the output methods
-    std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
+    // Gracefully handle any exceptions -> just log the error and exit
+    try {
+        std::unique_ptr<io::InputReader> input_reader = std::make_unique<io::YamlReader>(params->input_file);
 
-    // instantiate (and combine if necessary) the forces to be used in the simulation
-    std::unique_ptr<forces::PairwiseForce> force = std::move(params->pair_force);
+        // read in the simulation params with the yaml reader
+        input_reader->readInSimulation(params.value());
 
-    // disable in-simulation logging for benchmarks
-    if (params->benchmark_run) {
-        spdlog::warn("Running benchmark and disabling all following logs...");
-        spdlog::set_level(spdlog::level::off);
+        // set up the particle container. if a cutoff radius is set we use the direct sum otherwise the linked cells.
+        // read in the particles into the container
+        std::unique_ptr<ParticleContainer> container;
+        if (params->r_cutoff > 0) {
+            container = std::make_unique<LinkedCellContainer>(params->domain_anchor, params->domain_dimensions,
+                                                              params->third_dim, params->r_cutoff);
+        } else {
+            container = std::make_unique<DirectSumContainer>();
+        }
+
+        input_reader->readInParticles(*container, params->third_dim);
+
+        // set up the output methods
+        std::vector<std::unique_ptr<io::OutputWriter>> output_writers = setupOutputWriters(params.value());
+
+        // instantiate (and combine if necessary) the forces to be used in the simulation
+        std::unique_ptr<forces::PairwiseForce> force;
+        switch (params->pair_force) {
+            case LENNARD_JONES:
+                force = std::make_unique<forces::LennardJones>(params->sigma, params->epsilon, params->r_cutoff);
+                break;
+            case GRAVITY:
+                force = std::make_unique<forces::Gravity>();
+                break;
+            default:
+                throw std::logic_error("Unknown force type");
+        }
+
+        // disable in-simulation logging for benchmarks
+        if (params->benchmark_run) {
+            spdlog::warn("Running benchmark and disabling all following logs...");
+            spdlog::set_level(spdlog::level::off);
+        }
+
+        // instantiate and start the Simulator
+        Simulator simulator{*container,    std::move(force),    params->delta_t,
+                            params->t_end, params->omp_enabled, std::move(output_writers)};
+        spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...",
+                     static_cast<int>(params->t_end / params->delta_t));
+        simulator.runSimulation();
+        spdlog::info("Simulation complete. Terminating...");
+    } catch (const io::InputError &e) {
+        spdlog::error("{}", e.what());
+        return EXIT_FAILURE;
+    } catch (const std::exception &e) {
+        spdlog::critical("unexpected error: {}", e.what());
+        return EXIT_FAILURE;
     }
-
-    // instantiate and start the Simulator
-    Simulator simulator{*params->particle_container, std::move(force),         params->delta_t, params->t_end,
-                        params->omp_enabled,         std::move(output_writers)};
-    spdlog::info("Hello from MolSim for PSE! Simulating for {0:d} iterations...",
-                 static_cast<int>(params->t_end / params->delta_t));
-    simulator.runSimulation();
-    spdlog::info("Simulation complete. Terminating...");
     return EXIT_SUCCESS;
 }

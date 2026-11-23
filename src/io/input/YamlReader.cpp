@@ -4,33 +4,282 @@
 
 #include "YamlReader.h"
 
-#include <math.h>
 #include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
 #include <string>
 #include <utility>
 
+#include "InputError.h"
 #include "ParticleContainer/LinkedCellContainer.h"
-#include "ParticleContainer/ParticleContainer.h"
 #include "SimulationParameters.h"
-#include "forces/Gravity.h"
 #include "utils/ArrayUtils.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 
 namespace io {
 YamlReader::YamlReader(std::string filename) : filename(std::move(filename)) {
     try {
-        file = YAML::LoadFile(this->filename);
+        root_node = YAML::LoadFile(this->filename);
     } catch (const YAML::Exception &e) {
-        spdlog::error("'{}': {}", this->filename, e.what());
-        std::exit(EXIT_FAILURE);
+        throw InputError(this->filename, e.mark.line + 1, e.msg);
     }
 
-    if (!file.IsMap()) {
-        spdlog::error("'{}': unexpected root type, should be Map", this->filename);
-        std::exit(EXIT_FAILURE);
+    if (!root_node.IsMap()) {
+        fail(root_node, "unexpected root type, should be a map");
     }
+}
+
+void YamlReader::fail(const YAML::Node &node, const std::string &message) const {
+    throw InputError(filename, node.Mark().line + 1, message);
+}
+
+void YamlReader::readInSimulation(SimulationParameters &params) {
+    if (!root_node["simulation"]) {
+        fail(root_node, "no simulation information provided. Info about the required format in the README.");
+    }
+
+    // catch yaml-cpp internal exceptions
+    try {
+        auto sim_data = root_node["simulation"];
+        if (!sim_data.IsMap()) {
+            fail(sim_data, "simulation information should be a map");
+        }
+
+        if (sim_data["basename"]) {
+            params.output_file_basename = sim_data["basename"].as<std::string>();
+        }
+
+        if (sim_data["delta_t"] && sim_data["delta_t"].IsScalar()) {
+            params.delta_t = sim_data["delta_t"].as<double>();
+        } else {
+            fail(sim_data, "delta_t is a required parameter");
+        }
+
+        if (sim_data["end_t"] && sim_data["end_t"].IsScalar()) {
+            params.t_end = sim_data["end_t"].as<double>();
+        } else {
+            fail(sim_data, "end_t is a required parameter");
+        }
+
+        if (sim_data["out_interval"] && sim_data["out_interval"].IsScalar()) {
+            params.output_interval = sim_data["out_interval"].as<int>();
+        }
+
+        if (sim_data["3d"] && sim_data["3d"].IsScalar()) {
+            params.third_dim = sim_data["3d"].as<bool>();
+        } else {
+            spdlog::warn("No 3d parameter found defaulting to third_dim = false");
+        }
+
+        if (sim_data["domain"]) {
+            parseDomainParams(sim_data["domain"], params);
+        } else {
+            fail(sim_data, "domain is a required parameter");
+        }
+
+        if (sim_data["pair_force"]) {
+            parsePairwiseForce(sim_data["pair_force"], params);
+        } else {
+            fail(sim_data, "pair_force is a required parameter");
+        }
+    } catch (const YAML::Exception &e) {
+        throw InputError(filename, e.mark.line + 1, e.msg);
+    }
+
+    if (params.delta_t > params.t_end) {
+        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
+    }
+}
+
+void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &params) const {
+    if (root.IsScalar() && root.as<std::string>() == "Gravity") {
+        params.pair_force = GRAVITY;
+    } else if (root["Lennard-Jones"] && root["Lennard-Jones"].IsMap()) {
+        auto lj_params = root["Lennard-Jones"];
+        params.pair_force = LENNARD_JONES;
+
+        if (lj_params["sigma"]) {
+            auto sigma = lj_params["sigma"].as<double>();
+            if (sigma <= 0) {
+                fail(root, "sigma has to be greater than zero");
+            }
+            params.sigma = sigma;
+        } else {
+            fail(root, "no sigma value set for lennard jones force");
+        }
+
+        if (lj_params["epsilon"]) {
+            auto epsilon = lj_params["epsilon"].as<double>();
+            if (epsilon <= 0) {
+                fail(root, "epsilon has to be greater than zero");
+            }
+            params.epsilon = epsilon;
+        } else {
+            fail(root, "no epsilon value for lennard jones force");
+        }
+
+        if (lj_params["cutoff"]) {
+            auto cutoff = lj_params["cutoff"].as<double>();
+            if (cutoff <= 0) {
+                spdlog::debug("cutoff radius is disabled (<=0)");
+            }
+            params.r_cutoff = cutoff;
+        }
+    } else {
+        fail(root, "couldn't parse pair_force (expected Lennard-Jones or Gravity)");
+    }
+}
+
+std::array<BoundaryCondition, 2> YamlReader::parseBoundaryCondition(const YAML::Node &node) const {
+    const auto str_bounds = node.as<std::array<std::string, 2>>();
+
+    std::array<BoundaryCondition, 2> result{};
+
+    for (int i = 0; i < 2; i++) {
+        if (str_bounds.at(i) == "reflecting") {
+            result.at(i) = REFLECTING;
+        } else if (str_bounds.at(i) == "outflow") {
+            result.at(i) = OUTFLOW;
+        } else {
+            fail(node, "unknown boundary condition '" + str_bounds.at(i) + "' (expected reflecting or outflow)");
+        }
+    }
+
+    return result;
+}
+
+void YamlReader::parseDomainParams(YAML::Node root, SimulationParameters &params) {
+    if (!root.IsMap()) {
+        fail(root, "domain information should be a map");
+    }
+
+    if (root["anchor_point"]) {
+        params.domain_anchor = root["anchor_point"].as<std::array<double, 3>>();
+    } else {
+        fail(root, "missing anchor point for the domain boundary");
+    }
+
+    if (root["dimensions"]) {
+        params.domain_dimensions = root["dimensions"].as<std::array<double, 3>>();
+    } else {
+        fail(root, "missing dimensions for the domain boundary");
+    }
+
+    if (root["boundaries"] && root["boundaries"].IsMap()) {
+        auto boundaries = root["boundaries"];
+
+        for (auto iter = boundaries.begin(); iter != boundaries.end(); ++iter) {
+            if (!iter->first.IsScalar()) {
+                fail(iter->first, "boundary axis should be x, y or z");
+            }
+
+            auto cur = iter->first.as<std::string>();
+            auto bounds = parseBoundaryCondition(iter->second);
+
+            auto index = 0;
+            if (cur == "x") {
+                index = 0;
+            } else if (cur == "y") {
+                index = 2;
+            } else if (cur == "z") {
+                index = 4;
+            } else {
+                fail(iter->first, "unknown boundary axis '" + cur + "'");
+            }
+            params.boundary_conditions[index] = bounds[0];
+            params.boundary_conditions[index + 1] = bounds[1];
+        }
+    } else {
+        fail(root, "malformed boundary conditions");
+    }
+
+    if (!params.third_dim) {
+        params.domain_anchor.at(2) = 0;
+        params.domain_dimensions.at(2) = 1;
+    }
+}
+
+void YamlReader::readInParticles(ParticleContainer &particles, const bool third_dim) {
+    if (!root_node["scene"]) {
+        fail(root_node, "no scene information found");
+    }
+
+    // catch yaml-cpp internal exceptions
+    try {
+        auto scene_data = root_node["scene"];
+        if (!scene_data.IsMap()) {
+            fail(scene_data, "scene information should be a map");
+        }
+
+        for (auto iter = scene_data.begin(); iter != scene_data.end(); ++iter) {
+            auto cur = iter->first.as<std::string>();
+            auto child = iter->second.as<YAML::Node>(YAML::Node(YAML::NodeType::Undefined));
+            if (!child.IsSequence()) {
+                fail(iter->first, "'" + cur + "' should be a list of shapes");
+            }
+
+            if (cur == "cuboids") {
+                generateShapes(generateCuboid, child, particles, third_dim);
+                continue;
+            }
+
+            if (cur == "particles") {
+                generateShapes(generateParticle, child, particles, third_dim);
+                continue;
+            }
+
+            if (cur == "ellipsoids") {
+                generateShapes(generateEllipsoid, child, particles, third_dim);
+                continue;
+            }
+
+            fail(iter->first, "unknown scene key '" + cur + "' (expected cuboids, particles or ellipsoids)");
+        }
+    } catch (const YAML::Exception &e) {
+        throw InputError(filename, e.mark.line + 1, e.msg);
+    }
+}
+
+ShapeParameters YamlReader::parseShapeParams(YAML::Node root, const bool third_dim) {
+    ShapeParameters shape;
+
+    if (root["anchor_point"]) {
+        shape.anchor_point = root["anchor_point"].as<std::array<double, 3>>();
+    } else {
+        fail(root, "anchor point is a required parameter");
+    }
+
+    if (root["dimensions"]) {
+        shape.particle_dims = root["dimensions"].as<std::array<size_t, 3>>();
+    }
+
+    if (root["velocity"]) {
+        shape.velocity = root["velocity"].as<std::array<double, 3>>();
+    } else {
+        fail(root, "velocity is a required parameter");
+    }
+
+    if (root["spacing"]) {
+        shape.spacing = root["spacing"].as<double>();
+    }
+
+    if (root["mass"]) {
+        shape.particle_mass = root["mass"].as<double>();
+    } else {
+        fail(root, "mass is a required parameter");
+    }
+
+    if (root["type"]) {
+        shape.type = root["type"].as<int>();
+    }
+
+    if (!third_dim) {
+        shape.anchor_point.at(2) = 1;
+        shape.particle_dims.at(2) = 1;
+        shape.velocity.at(2) = 0;
+    }
+
+    return shape;
 }
 
 void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
@@ -103,255 +352,4 @@ void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &p
                   params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2), a, b, c,
                   params.spacing, params.particle_mass, params.type);
 }
-
-ShapeParameters YamlReader::parseShapeParams(YAML::Node root, const bool third_dim) {
-    ShapeParameters params;
-
-    if (root["anchor_point"]) {
-        params.anchor_point = root["anchor_point"].as<std::array<double, 3>>(std::array<double, 3>{0, 0, 0});
-    }
-
-    if (root["dimensions"]) {
-        params.particle_dims = root["dimensions"].as<std::array<size_t, 3>>(std::array<size_t, 3>{1, 1, 1});
-    }
-
-    if (root["velocity"]) {
-        params.velocity = root["velocity"].as<std::array<double, 3>>(std::array<double, 3>{0, 0, 0});
-    }
-
-    if (root["spacing"]) {
-        params.spacing = root["spacing"].as<double>(1);
-    }
-
-    if (root["mass"]) {
-        params.particle_mass = root["mass"].as<double>(1);
-    }
-
-    if (root["type"]) {
-        params.type = root["type"].as<int>(0);
-    }
-
-    if (!third_dim) {
-        params.anchor_point.at(2) = 1;
-        params.particle_dims.at(2) = 1;
-        params.velocity.at(2) = 0;
-    }
-
-    return params;
-}
-
-void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &params) {
-    if (root.IsScalar()) {
-        if (root.as<std::string>() == "Lennard-Jones") {
-            params.pair_force = std::make_unique<forces::LennardJones>();
-            return;
-        }
-
-        if (root.as<std::string>() == "Gravity") {
-            params.pair_force = std::make_unique<forces::Gravity>();
-            return;
-        }
-    } else if (root["Lennard-Jones"] && root["Lennard-Jones"].IsMap()) {
-        auto lj_params = root["Lennard-Jones"];
-        double sigma = 1;
-        double epsilon = 5;
-        double cutoff = 3;
-
-        if (lj_params["sigma"]) {
-            sigma = lj_params["sigma"].as<double>(1);
-        }
-
-        if (lj_params["epsilon"]) {
-            epsilon = lj_params["epsilon"].as<double>(5);
-        }
-
-        if (lj_params["cutoff"]) {
-            cutoff = lj_params["cutoff"].as<double>(3);
-            params.particle_container = std::make_unique<LinkedCellContainer>(
-                LinkedCellContainer(params.domain_anchor, params.domain_dimensions, params.third_dim, cutoff));
-        }
-
-        params.pair_force = std::make_unique<forces::LennardJones>(sigma, epsilon, cutoff);
-        return;
-    }
-
-    spdlog::error("YamlReader Error: couldn't parse pairwise force information.");
-    exit(EXIT_FAILURE);
-}
-
-std::array<bool, 2> YamlReader::parseDomainBehavior(const std::array<std::string, 2> &str_bounds) {
-    std::array<bool, 2> result{};
-    for (int i = 0; i < 2; i++) {
-        if (str_bounds.at(i) == "reflecting") {
-            result.at(i) = true;
-            continue;
-        }
-
-        if (str_bounds.at(i) == "outflow") {
-            result.at(i) = false;
-            continue;
-        }
-
-        spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    return result;
-}
-
-void YamlReader::parseDomainParams(YAML::Node root, SimulationParameters &params) {
-    if (root["anchor_point"]) {
-        params.domain_anchor = root["anchor_point"].as<std::array<double, 3>>(std::array<double, 3>{0, 0, 0});
-    }
-
-    if (root["dimensions"]) {
-        params.domain_dimensions = root["dimensions"].as<std::array<double, 3>>(std::array<double, 3>{100, 100, 100});
-    }
-
-    if (root["boundaries"]) {
-        if (!root.IsMap()) {
-            spdlog::error("'{}': boundaries information should be map.", filename);
-            exit(EXIT_FAILURE);
-        }
-
-        for (auto iter = root["boundaries"].begin(); iter != root["boundaries"].end(); ++iter) {
-            if (!iter->first.IsScalar()) {
-                spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
-                exit(EXIT_FAILURE);
-            }
-
-            auto cur = iter->first.as<std::string>();
-            auto bounds = parseDomainBehavior(iter->second.as<std::array<std::string, 2>>());
-
-            if (cur == "x") {
-                for (int i = 0; i < 2; i++) {
-                    params.boundary_conditions.at(i) = bounds.at(i);
-                }
-                continue;
-            }
-
-            if (cur == "y") {
-                for (int i = 0; i < 2; i++) {
-                    params.boundary_conditions.at(i + 2) = bounds.at(i);
-                }
-                continue;
-            }
-
-            if (params.third_dim && cur == "z") {
-                for (int i = 0; i < 2; i++) {
-                    params.boundary_conditions.at(i + 4) = bounds.at(i);
-                }
-                continue;
-            }
-
-            spdlog::error("'{}': Couldn't parse domain boundaries.", filename);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (!params.third_dim) {
-        params.domain_anchor.at(2) = 0;
-        params.domain_dimensions.at(2) = 1;
-    }
-}
-
-void YamlReader::readInSimulation(SimulationParameters &params) {
-    if (!file["simulation"]) {
-        spdlog::info("'{}': no simulation information, using default values", filename);
-        return;
-    }
-
-    auto sim_data = file["simulation"];
-    if (!sim_data.IsMap()) {
-        spdlog::error("'{}': simulation information should be map.", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    for (auto iter = sim_data.begin(); iter != sim_data.end(); ++iter) {
-        auto cur = iter->first.as<std::string>();
-        auto child = iter->second;
-
-        if (cur == "delta_t") {
-            params.delta_t = child.as<double>(0.014);
-            continue;
-        }
-
-        if (cur == "end_t") {
-            params.t_end = child.as<double>(1000);
-            continue;
-        }
-
-        if (cur == "out_interval") {
-            params.output_interval = child.as<int>(10);
-            continue;
-        }
-
-        if (cur == "3d") {
-            params.third_dim = child.as<bool>(false);
-            continue;
-        }
-
-        if (cur == "domain") {
-            parseDomainParams(child, params);
-            continue;
-        }
-
-        if (cur == "pair_force") {
-            parsePairwiseForce(child, params);
-            continue;
-        }
-
-        spdlog::error("'{}': couldn't parse simulation information.", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    if (params.delta_t > params.t_end) {
-        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
-    }
-}
-
-void YamlReader::readInParticles(ParticleContainer &particles, const bool third_dim) {
-    if (!file["scene"]) {
-        spdlog::info("'{}': no scene information", filename);
-        return;
-    }
-
-    auto part_data = file["scene"];
-    if (!part_data.IsMap()) {
-        spdlog::error("'{}': scene information should be map.", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    for (auto iter = part_data.begin(); iter != part_data.end(); ++iter) {
-        auto cur = iter->first.as<std::string>();
-        auto child = iter->second.as<YAML::Node>(YAML::Node(YAML::NodeType::Undefined));
-        if (!child.IsSequence()) {
-            break;
-        }
-
-        if (cur == "cuboids") {
-            generateShapes(generateCuboid, child, particles, third_dim);
-            continue;
-        }
-
-        if (cur == "particles") {
-            generateShapes(generateParticle, child, particles, third_dim);
-            continue;
-        }
-
-        if (cur == "ellipsoids") {
-            generateShapes(generateEllipsoid, child, particles, third_dim);
-            continue;
-        }
-
-        spdlog::error("'{}': couldn't parse scene information.", filename);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void YamlReader::readInput(SimulationParameters &params) {
-    readInSimulation(params);
-    readInParticles(*params.particle_container, params.third_dim);
-}
-
 }  // namespace io

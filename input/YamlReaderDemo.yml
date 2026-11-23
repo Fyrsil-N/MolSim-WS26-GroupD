@@ -2,17 +2,18 @@ simulation:
   delta_t: 0.0002
   end_t: 5
   out_interval: 50
+  basename: "Simulation_Output"
   3d: true
   domain:
-    anchor_point: [-40, -80, -120]
-    dimensions: [60, 150, 250]
+    anchor_point: [ -40, -80, -120 ]
+    dimensions: [ 60, 150, 250 ]
     boundaries:
       # +x, -x
-      x: [reflecting, reflecting]
+      x: [ reflecting, reflecting ]
       # +y, -y
-      y: [outflow, reflecting]
+      y: [ outflow, reflecting ]
       # +z, -z
-      z: [outflow, outflow]
+      z: [ outflow, outflow ]
   pair_force:
     Lennard-Jones:
       sigma: 1
@@ -21,7 +22,6 @@ simulation:
       cutoff: 3
 # Can also be:
 # pair_force: Gravity
-# pair_force: Lennard-Jones
 
 scene:
   cuboids:

@@ -13,16 +13,11 @@ namespace forces {
  */
 class LennardJones : public PairwiseForce {
    protected:
-    double sigma = 1;
-    double epsilon = 5;
+    double sigma;
+    double epsilon;
     double cutoff = -1;
 
    public:
-    /**
-     * Default constructor
-     */
-    LennardJones() = default;
-
     /**
      * Constructor allowing force parameterization
      * @param sigma Distance where LJ(sigma) = 0
