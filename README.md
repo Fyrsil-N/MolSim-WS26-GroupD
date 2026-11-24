@@ -58,7 +58,8 @@ instantiation are separated and the testing framework can make direct use of all
     * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided
       `ParticleContainer`s and `SimulationParameter`s.
     * They should also make use of the `reserve` method before filling the container to reduce relocations.
-    * The `YamlReader` initializes the simulation with arbitrary arrangements of particles into shapes and single particles.
+    * The `YamlReader` initializes the simulation with arbitrary arrangements of particles into shapes and single
+      particles.
 * **Pattern**: Strategy, so new readers share a unified interface; Observer, so OutputWriters can get notified without
   knowing their implementation.
 
@@ -114,31 +115,42 @@ rm -rf build
   before any commit).
 * `make doc_doxygen` is used to build the Doxygen documentation. (Not available if disabled in cmake configuration)
 
-
 ### Scene building
 
-Defining simulation parameters and particle positions happens in YAML input files. A demonstration file can be found inside the input folder which demonstrates most of the functionality (`input/YamlReaderDemo.yml`).
+Defining simulation parameters and particle positions happens in YAML input files. A demonstration file can be found
+inside the input folder which demonstrates most of the functionality (`input/YamlReaderDemo.yml`).
 
 The input is split into two main parts:
 
 #### Simulation:
+
 Inside the simulation map, we define:
+
 * size of each timestep (`delta_t`)
 * end time (`end_t`)
 * output frequency (`out_interval`)
 * spatial dimensions (`3d`: true/false)
+* base name of the output files (`basename`)
 
-as well as choose and (if desired) parametrize forces acting upon the particles. Available pairwise forces are Gravity and Lennard-Jones. Lennard-Jones can be parametrized by changing its `sigma`, `epsilon` and `cutoff` variables. If `cutoff` is set, the simulation will automatically select the faster `LinkedCellContainer` instead of the `DirectSumContainer`. 
+as well as choose and parametrize forces acting upon the particles. Available pairwise forces are Gravity and
+Lennard-Jones. Lennard-Jones is parametrized by changing its `sigma`, `epsilon` and `cutoff` variables. If `cutoff` is
+set, the simulation will automatically select the faster `LinkedCellContainer` instead of the `DirectSumContainer`.
 
-The simulation bounds can also be set by specifying an `anchor_point` and `dimensions`. The behavior (reflecting/outflow) at the boundaries on each axis can also be parametrized.
+The simulation bounds are set by specifying an `anchor_point` and `dimensions` and the behavior (reflecting/outflow) at
+the boundaries on each axis also needs to be specified.
+
+Note that if the simulation is set to run with 2 dimension boundary conditions only need to be set of `x` and `y`.
 
 #### Scene:
+
 Inside the scene map, we can generate different arrangements of particles:
+
 * Cuboids
 * Ellipsoids
 * Singular particles
 
-They all take the same parameters (`anchor_point`, `dimensions`, `velocity`, `spacing`, `mass`, `type`). Multiple versions of one shape type can be generated using sequences.
+They all take the same parameters (`anchor_point`, `dimensions`, `velocity`, `spacing`, `mass`, `type`). Multiple
+versions of one shape type can be generated using sequences.
 
 ### Execution
 
@@ -198,7 +210,8 @@ this also means using the `-l` and `-v` flags in combination has **no** effect.
 Benchmarks should only be run on a release build.
 
 During a benchmark run the simulation will be executed normally on the input file (parallel or serial depending on the
-`-s` flag; currently always serial, so the reported thread count is only correct with `-s`). In the end a summary over total runtime, cpu runtime, iterations and other statistics will be printed to
+`-s` flag; currently always serial, so the reported thread count is only correct with `-s`). In the end a summary over
+total runtime, cpu runtime, iterations and other statistics will be printed to
 `std::cout`.
 
 ```bash

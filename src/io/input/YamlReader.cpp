@@ -7,191 +7,297 @@
 #include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
+#include <algorithm>
+#include <array>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "InputError.h"
-#include "ParticleContainer/LinkedCellContainer.h"
+#include "ParticleGenerator.h"
+#include "ShapeParameters.h"
 #include "SimulationParameters.h"
-#include "utils/ArrayUtils.h"
-#include "utils/MaxwellBoltzmannDistribution.h"
 
-namespace io {
-YamlReader::YamlReader(std::string filename) : filename(std::move(filename)) {
-    try {
-        root_node = YAML::LoadFile(this->filename);
-    } catch (const YAML::Exception &e) {
-        throw InputError(this->filename, e.mark.line + 1, e.msg);
+/**
+ * private namespace to encapsulate all the yaml-cpp from the rest of the project
+ */
+namespace {
+using io::InputError;
+/**
+ * Class wrapping a YAML node to make checking the format and required / allowed keys easier.
+ * This class also encapsulates all the yaml-cpp functionality to hide it from the rest of the project.
+ * The key idea is that once finished is called all keys have been accounted for to make sure there are no extra invalid
+ * key, value pairs in the yaml.
+ */
+class Section {
+   private:
+    /** the wrapped yaml map */
+    YAML::Node node;
+
+    /** filename of the config file for error messages only */
+    const std::string filename;
+
+    /** All the keys allowed / asked for in this section. finish() rejects every other key */
+    std::vector<std::string> known_keys;
+
+    /**
+     * Look up a key in the node
+     * @param key the key of the Node to look up
+     */
+    [[nodiscard]] YAML::Node lookup(const std::string &key) const { return std::as_const(node)[key]; }
+
+    /**
+     * Convert the value of a key to T
+     * @param value Node to convert
+     * @param key name of the key for error messages only
+     * @throws InputError if the value can't be converted
+     */
+    template <class T>
+    T convert(const YAML::Node &value, const std::string &key) const {
+        try {
+            return value.as<T>();
+        } catch (const YAML::Exception &) {
+            fail(value, "failed converting " + key + " to its target type");
+        }
     }
 
-    if (!root_node.IsMap()) {
-        fail(root_node, "unexpected root type, should be a map");
-    }
-}
-
-void YamlReader::fail(const YAML::Node &node, const std::string &message) const {
-    throw InputError(filename, node.Mark().line + 1, message);
-}
-
-void YamlReader::readInSimulation(SimulationParameters &params) {
-    if (!root_node["simulation"]) {
-        fail(root_node, "no simulation information provided. Info about the required format in the README.");
-    }
-
-    // catch yaml-cpp internal exceptions
-    try {
-        auto sim_data = root_node["simulation"];
-        if (!sim_data.IsMap()) {
-            fail(sim_data, "simulation information should be a map");
+   public:
+    /**
+     * Constructor of a Section from a yaml node
+     * @param node the map to wrap
+     * @param filename input file name for error messages
+     * @throws InputError if the node is not a map
+     */
+    Section(const YAML::Node &node, const std::string &filename) : node(node), filename(filename) {
+        if (!node.IsMap()) {
+            fail(node, "should be a map");
         }
-
-        if (sim_data["basename"]) {
-            params.output_file_basename = sim_data["basename"].as<std::string>();
-        }
-
-        if (sim_data["delta_t"] && sim_data["delta_t"].IsScalar()) {
-            params.delta_t = sim_data["delta_t"].as<double>();
-        } else {
-            fail(sim_data, "delta_t is a required parameter");
-        }
-
-        if (sim_data["end_t"] && sim_data["end_t"].IsScalar()) {
-            params.t_end = sim_data["end_t"].as<double>();
-        } else {
-            fail(sim_data, "end_t is a required parameter");
-        }
-
-        if (sim_data["out_interval"] && sim_data["out_interval"].IsScalar()) {
-            params.output_interval = sim_data["out_interval"].as<int>();
-        }
-
-        if (sim_data["3d"] && sim_data["3d"].IsScalar()) {
-            params.third_dim = sim_data["3d"].as<bool>();
-        } else {
-            spdlog::warn("No 3d parameter found defaulting to third_dim = false");
-        }
-
-        if (sim_data["domain"]) {
-            parseDomainParams(sim_data["domain"], params);
-        } else {
-            fail(sim_data, "domain is a required parameter");
-        }
-
-        if (sim_data["pair_force"]) {
-            parsePairwiseForce(sim_data["pair_force"], params);
-        } else {
-            fail(sim_data, "pair_force is a required parameter");
-        }
-    } catch (const YAML::Exception &e) {
-        throw InputError(filename, e.mark.line + 1, e.msg);
     }
 
-    if (params.delta_t > params.t_end) {
-        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
-    }
-}
+    /**
+     * Constructor of a Section from the root node of a yaml file
+     * @param filename name of the yaml input file
+     * @throws InputError if the file cannot be opened or does not contain a map
+     */
+    Section(const std::string &filename) : filename(filename) {
+        try {
+            node = YAML::LoadFile(this->filename);
+        } catch (const YAML::Exception &e) {
+            throw InputError(this->filename, e.mark.line + 1, e.msg);
+        }
 
-void YamlReader::parsePairwiseForce(YAML::Node root, SimulationParameters &params) const {
-    if (root.IsScalar() && root.as<std::string>() == "Gravity") {
+        if (!node.IsMap()) {
+            fail(node, "should be a map");
+        }
+    }
+
+    /**
+     * Throw an InputError pointing at the the specified node
+     * @param node_arg Node the program failed at
+     * @param message description of the problem
+     * @throws InputError
+     */
+    [[noreturn]] void fail(const YAML::Node &node_arg, const std::string &message) const {
+        throw InputError(filename, node_arg.Mark().line + 1, message);
+    }
+
+    /**
+     * Throw an InputError for this section in general
+     * @param message description of the problem
+     * @throws InputError
+     */
+    [[noreturn]] void fail(const std::string &message) const {
+        throw InputError(filename, node.Mark().line + 1, message);
+    }
+
+    /**
+     * Record that the key is allowed in this map without reading or requiring it.
+     * @param key key to add to the allowed list
+     */
+    void markKnown(const std::string &key) {
+        if (std::ranges::find(known_keys, key) == known_keys.end()) {
+            known_keys.push_back(key);
+        }
+    }
+
+    /**
+     * Read a required value
+     * @param key key of the value to be retrieved
+     * @throws InputError if the key is missing or the value can't be converted to T
+     */
+    template <class T>
+    T required(const std::string &key) {
+        markKnown(key);
+        const YAML::Node value = lookup(key);
+        if (!value) {
+            fail(node, "missing required key " + key);
+        }
+        return convert<T>(value, key);
+    }
+
+    /**
+     * Read an optional value or return the fallback if the key is not present.
+     * @param key key of the value to be retrieved
+     * @param fallback value to use if the key is not found
+     * @throws InputError if the value can't be converted to T
+     */
+    template <class T>
+    T optional(const std::string &key, T fallback) {
+        markKnown(key);
+        const YAML::Node value = lookup(key);
+        if (!value) {
+            return fallback;
+        }
+        return convert<T>(value, key);
+    }
+
+    /**
+     * Check whether the key holds a single value (used for pair_force: Gravity)
+     * @param key key to check
+     * @return true if the key exists and holds a scalar
+     */
+    bool isScalar(const std::string &key) {
+        markKnown(key);
+        const YAML::Node value = lookup(key);
+        return value && value.IsScalar();
+    }
+
+    /**
+     * @param key key of the subsection
+     * @return the section of a required key
+     * @throws InputError if the key is missing or its value is not a map
+     */
+    Section section(const std::string &key) {
+        markKnown(key);
+        YAML::Node value = lookup(key);
+        if (!value) {
+            fail(node, "missing required key " + key);
+        }
+        return Section{value, filename};
+    }
+
+    /**
+     * @param key of the section list
+     * @return List of sections stored under a given key, empty if the key does not exist
+     * @throws InputError if the value is not a list or an element is not a map
+     */
+    std::vector<Section> getSectionList(const std::string &key) {
+        markKnown(key);
+        const YAML::Node value = lookup(key);
+        if (!value) {
+            return {};
+        }
+
+        if (!value.IsSequence()) {
+            fail(value, key + " should be a list");
+        }
+        std::vector<Section> result;
+        result.reserve(value.size());
+        for (const auto &element : value) {
+            result.emplace_back(element, filename);
+        }
+        return result;
+    }
+
+    /**
+     * Reject every key of the map that was never asked for. Call after all keys of the map have been read.
+     * @throws InputError for the first unknown key
+     */
+    void finish() const {
+        for (auto iter = node.begin(); iter != node.end(); ++iter) {
+            const auto key = iter->first.as<std::string>();
+            if (std::ranges::find(known_keys, key) != known_keys.end()) {
+                continue;
+            }
+
+            std::string allowed;
+            for (const auto &known : known_keys) {
+                allowed += (allowed.empty() ? "" : ", ") + known;
+            }
+            fail(iter->first, "unknown key " + key + " (allowed: " + allowed + ")");
+        }
+    }
+};
+
+/**
+ * Parses which pairwise force to be used for the simulation
+ * @param simulation the simulation section holding the pair_force key
+ * @param params SimulationParameters to write the results into
+ * @throws io::InputError
+ */
+void parsePairwiseForce(Section &simulation, SimulationParameters &params) {
+    // gravity
+    if (simulation.isScalar("pair_force")) {
+        const auto name = simulation.required<std::string>("pair_force");
+        if (name != "Gravity") {
+            simulation.fail("unknown pair_force '" + name + "' (expected Gravity or a Lennard-Jones map)");
+        }
         params.pair_force = GRAVITY;
-    } else if (root["Lennard-Jones"] && root["Lennard-Jones"].IsMap()) {
-        auto lj_params = root["Lennard-Jones"];
-        params.pair_force = LENNARD_JONES;
-
-        if (lj_params["sigma"]) {
-            auto sigma = lj_params["sigma"].as<double>();
-            if (sigma <= 0) {
-                fail(root, "sigma has to be greater than zero");
-            }
-            params.sigma = sigma;
-        } else {
-            fail(root, "no sigma value set for lennard jones force");
-        }
-
-        if (lj_params["epsilon"]) {
-            auto epsilon = lj_params["epsilon"].as<double>();
-            if (epsilon <= 0) {
-                fail(root, "epsilon has to be greater than zero");
-            }
-            params.epsilon = epsilon;
-        } else {
-            fail(root, "no epsilon value for lennard jones force");
-        }
-
-        if (lj_params["cutoff"]) {
-            auto cutoff = lj_params["cutoff"].as<double>();
-            if (cutoff <= 0) {
-                spdlog::debug("cutoff radius is disabled (<=0)");
-            }
-            params.r_cutoff = cutoff;
-        }
-    } else {
-        fail(root, "couldn't parse pair_force (expected Lennard-Jones or Gravity)");
+        return;
     }
+
+    // lennard jones
+    Section force_section = simulation.section("pair_force");
+    Section lennard_jones_section = force_section.section("Lennard-Jones");
+
+    // @TODO validation of input
+    params.pair_force = LENNARD_JONES;
+    params.sigma = lennard_jones_section.required<double>("sigma");
+    params.epsilon = lennard_jones_section.required<double>("epsilon");
+    params.r_cutoff = lennard_jones_section.optional<double>("cutoff", -1);
+
+    lennard_jones_section.finish();
+    force_section.finish();
 }
 
-std::array<BoundaryCondition, 2> YamlReader::parseBoundaryCondition(const YAML::Node &node) const {
-    const auto str_bounds = node.as<std::array<std::string, 2>>();
-
+/**
+ * Parses the behavior of the lower and upper boundary of one axis
+ * @param boundaries the boundaries section
+ * @param axis key of the axis ("x", "y" or "z")
+ * @return an array containing the boundary behavior at the smaller coordinate and the bigger coordinate
+ * @throws io::InputError
+ */
+std::array<BoundaryCondition, 2> parseBoundaryCondition(Section &boundaries, const std::string &axis) {
+    const auto names = boundaries.required<std::array<std::string, 2>>(axis);
     std::array<BoundaryCondition, 2> result{};
 
-    for (int i = 0; i < 2; i++) {
-        if (str_bounds.at(i) == "reflecting") {
+    for (std::size_t i = 0; i < names.size(); i++) {
+        if (names.at(i) == "reflecting") {
             result.at(i) = REFLECTING;
-        } else if (str_bounds.at(i) == "outflow") {
+        } else if (names.at(i) == "outflow") {
             result.at(i) = OUTFLOW;
         } else {
-            fail(node, "unknown boundary condition '" + str_bounds.at(i) + "' (expected reflecting or outflow)");
+            boundaries.fail("unknown boundary condition '" + names.at(i) + "' (expected reflecting or outflow)");
         }
     }
 
     return result;
 }
 
-void YamlReader::parseDomainParams(YAML::Node root, SimulationParameters &params) {
-    if (!root.IsMap()) {
-        fail(root, "domain information should be a map");
-    }
+/**
+ * Parses all necessary parameters for the simulation bounds
+ * @param domain the domain section
+ * @param params SimulationParameters to write the results into
+ * @throws io::InputError
+ */
+void parseDomainParams(Section &domain, SimulationParameters &params) {
+    params.domain_anchor = domain.required<std::array<double, 3>>("anchor_point");
+    params.domain_dimensions = domain.required<std::array<double, 3>>("dimensions");
 
-    if (root["anchor_point"]) {
-        params.domain_anchor = root["anchor_point"].as<std::array<double, 3>>();
+    Section boundaries = domain.section("boundaries");
+
+    // third dimension is already parsed at this point so can be used it without danger
+    if (params.third_dim) {
+        params.boundary_conditions[0] = parseBoundaryCondition(boundaries, "x");
+        params.boundary_conditions[1] = parseBoundaryCondition(boundaries, "y");
+        params.boundary_conditions[2] = parseBoundaryCondition(boundaries, "z");
     } else {
-        fail(root, "missing anchor point for the domain boundary");
+        params.boundary_conditions[0] = parseBoundaryCondition(boundaries, "x");
+        params.boundary_conditions[1] = parseBoundaryCondition(boundaries, "y");
     }
+    boundaries.finish();
 
-    if (root["dimensions"]) {
-        params.domain_dimensions = root["dimensions"].as<std::array<double, 3>>();
-    } else {
-        fail(root, "missing dimensions for the domain boundary");
-    }
-
-    if (root["boundaries"] && root["boundaries"].IsMap()) {
-        auto boundaries = root["boundaries"];
-
-        for (auto iter = boundaries.begin(); iter != boundaries.end(); ++iter) {
-            if (!iter->first.IsScalar()) {
-                fail(iter->first, "boundary axis should be x, y or z");
-            }
-
-            auto cur = iter->first.as<std::string>();
-            auto bounds = parseBoundaryCondition(iter->second);
-
-            auto index = 0;
-            if (cur == "x") {
-                index = 0;
-            } else if (cur == "y") {
-                index = 2;
-            } else if (cur == "z") {
-                index = 4;
-            } else {
-                fail(iter->first, "unknown boundary axis '" + cur + "'");
-            }
-            params.boundary_conditions[index] = bounds[0];
-            params.boundary_conditions[index + 1] = bounds[1];
-        }
-    } else {
-        fail(root, "malformed boundary conditions");
-    }
+    domain.finish();
 
     if (!params.third_dim) {
         params.domain_anchor.at(2) = 0;
@@ -199,157 +305,94 @@ void YamlReader::parseDomainParams(YAML::Node root, SimulationParameters &params
     }
 }
 
-void YamlReader::readInParticles(ParticleContainer &particles, const bool third_dim) {
-    if (!root_node["scene"]) {
-        fail(root_node, "no scene information found");
-    }
+/**
+ * Parses all necessary parameters to create a shape (some are not allowed for single particles)
+ * @param shape the section of one shape
+ * @param multiple_particles flag to tell if particle_dims and spacing are needed parameters
+ * @param third_dim Whether the third spatial dimension is enabled
+ * @return the shape parameters, dimensions and spacing are left at their defaults
+ */
+ShapeParameters parseShapeParams(Section &shape, const bool multiple_particles, const bool third_dim) {
+    ShapeParameters params;
 
-    // catch yaml-cpp internal exceptions
-    try {
-        auto scene_data = root_node["scene"];
-        if (!scene_data.IsMap()) {
-            fail(scene_data, "scene information should be a map");
-        }
+    // @TODO validation
+    params.anchor_point = shape.required<std::array<double, 3>>("anchor_point");
+    params.velocity = shape.required<std::array<double, 3>>("velocity");
+    params.particle_mass = shape.required<double>("mass");
+    params.type = shape.optional<int>("type", 0);
 
-        for (auto iter = scene_data.begin(); iter != scene_data.end(); ++iter) {
-            auto cur = iter->first.as<std::string>();
-            auto child = iter->second.as<YAML::Node>(YAML::Node(YAML::NodeType::Undefined));
-            if (!child.IsSequence()) {
-                fail(iter->first, "'" + cur + "' should be a list of shapes");
-            }
-
-            if (cur == "cuboids") {
-                generateShapes(generateCuboid, child, particles, third_dim);
-                continue;
-            }
-
-            if (cur == "particles") {
-                generateShapes(generateParticle, child, particles, third_dim);
-                continue;
-            }
-
-            if (cur == "ellipsoids") {
-                generateShapes(generateEllipsoid, child, particles, third_dim);
-                continue;
-            }
-
-            fail(iter->first, "unknown scene key '" + cur + "' (expected cuboids, particles or ellipsoids)");
-        }
-    } catch (const YAML::Exception &e) {
-        throw InputError(filename, e.mark.line + 1, e.msg);
-    }
-}
-
-ShapeParameters YamlReader::parseShapeParams(YAML::Node root, const bool third_dim) {
-    ShapeParameters shape;
-
-    if (root["anchor_point"]) {
-        shape.anchor_point = root["anchor_point"].as<std::array<double, 3>>();
-    } else {
-        fail(root, "anchor point is a required parameter");
-    }
-
-    if (root["dimensions"]) {
-        shape.particle_dims = root["dimensions"].as<std::array<size_t, 3>>();
-    }
-
-    if (root["velocity"]) {
-        shape.velocity = root["velocity"].as<std::array<double, 3>>();
-    } else {
-        fail(root, "velocity is a required parameter");
-    }
-
-    if (root["spacing"]) {
-        shape.spacing = root["spacing"].as<double>();
-    }
-
-    if (root["mass"]) {
-        shape.particle_mass = root["mass"].as<double>();
-    } else {
-        fail(root, "mass is a required parameter");
-    }
-
-    if (root["type"]) {
-        shape.type = root["type"].as<int>();
+    // particle dims and spacing only make sense for cuboids or ellipsoids etc.
+    if (multiple_particles) {
+        // @TODO validation
+        params.particle_dims = shape.required<std::array<std::size_t, 3>>("dimensions");
+        params.spacing = shape.required<double>("spacing");
     }
 
     if (!third_dim) {
-        shape.anchor_point.at(2) = 1;
-        shape.particle_dims.at(2) = 1;
-        shape.velocity.at(2) = 0;
+        params.anchor_point.at(2) = 0;
+        params.velocity.at(2) = 0;
+        params.particle_dims.at(2) = 1;
     }
 
-    return shape;
+    shape.finish();
+
+    return params;
 }
 
-void YamlReader::generateCuboid(ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
-    particles.reserve(params.particle_dims.at(0) * params.particle_dims.at(1) * params.particle_dims.at(2));
-    for (size_t x = 0; x < params.particle_dims.at(0); ++x) {
-        for (size_t y = 0; y < params.particle_dims.at(1); ++y) {
-            for (size_t z = 0; z < params.particle_dims.at(2); ++z) {
-                std::array pos = {params.anchor_point.at(0) + static_cast<double>(x) * params.spacing,
-                                  params.anchor_point.at(1) + static_cast<double>(y) * params.spacing,
-                                  params.anchor_point.at(2) + static_cast<double>(z) * params.spacing};
+}  // namespace
 
-                particles.emplaceBack(pos,
-                                      params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
-                                      params.particle_mass, params.type);
-            }
-        }
+namespace io {
+YamlReader::YamlReader(std::string filename_arg) : filename(std::move(filename_arg)) {
+    // only check the top level keys here, each readIn* function requires its own section
+    Section root = Section(filename);
+    root.markKnown("simulation");
+    root.markKnown("scene");
+    root.finish();
+}
+
+void YamlReader::readInSimulation(SimulationParameters &params) {
+    Section root = Section(filename);
+    Section simulation = root.section("simulation");
+
+    // @TODO value validation
+    params.output_file_basename = simulation.optional<std::string>("basename", "MD_output");
+    params.delta_t = simulation.required<double>("delta_t");
+    params.t_end = simulation.required<double>("end_t");
+    params.output_interval = simulation.optional<int>("out_interval", 10);
+    // has to be read before the domain
+    params.third_dim = simulation.optional<bool>("3d", false);
+
+    Section domain = simulation.section("domain");
+    parseDomainParams(domain, params);
+    parsePairwiseForce(simulation, params);
+
+    simulation.finish();
+
+    if (params.delta_t > params.t_end) {
+        spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
     }
-    spdlog::debug("Cuboid created at ({}, {}, {}) with dimensions {}x{}x{}, h={}, m={}, type={}",
-                  params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2),
-                  params.particle_dims.at(0), params.particle_dims.at(1), params.particle_dims.at(2), params.spacing,
-                  params.particle_mass, params.type);
 }
 
-void YamlReader::generateParticle(const ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
-    particles.emplaceBack(params.anchor_point,
-                          params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
-                          params.particle_mass, params.type);
-}
+void YamlReader::readInParticles(ParticleContainer &particles, const bool third_dim) {
+    Section root = Section(filename);
+    Section scene = root.section("scene");
 
-void YamlReader::generateEllipsoid(ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
-    auto a = static_cast<long long>(params.particle_dims.at(0));
-    auto b = static_cast<long long>(params.particle_dims.at(1));
-    auto c = static_cast<long long>(params.particle_dims.at(2));
+    // collect all the lists of allowed shapes / particle objects
+    std::vector<Section> cuboids = scene.getSectionList("cuboids");
+    std::vector<Section> single_particles = scene.getSectionList("particles");
+    std::vector<Section> ellipsoids = scene.getSectionList("ellipsoids");
+    scene.finish();
 
-    particles.reserve(8 * a * b * c);
-
-    for (long long x = 0; x < a; ++x) {
-        for (long long y = 0; y < b; ++y) {
-            for (long long z = 0; z < c; ++z) {
-                if (static_cast<double>(x * x) / static_cast<double>(a * a) +
-                        static_cast<double>(y * y) / static_cast<double>(b * b) +
-                        static_cast<double>(z * z) / static_cast<double>(c * c) >
-                    1) {
-                    continue;
-                }
-
-                for (int i = 0; i < (third_dim ? 8 : 4); ++i) {
-                    const int x_sign = i % 2 < 1 ? -1 : 1;
-                    const int y_sign = i % 4 < 2 ? -1 : 1;
-                    const int z_sign = i % 8 < 4 ? -1 : 1;
-
-                    std::array<double, 3> pos{};
-                    pos.at(0) = params.anchor_point.at(0) + x_sign * (static_cast<double>(x) + 0.5) * params.spacing;
-                    pos.at(1) = params.anchor_point.at(1) + y_sign * (static_cast<double>(y) + 0.5) * params.spacing;
-                    pos.at(2) =
-                        third_dim ? params.anchor_point.at(2) + z_sign * (static_cast<double>(z) + 0.5) * params.spacing
-                                  : 0;
-
-                    particles.emplaceBack(pos,
-                                          params.velocity + maxwellBoltzmannDistributedVelocity(0.1, third_dim ? 3 : 2),
-                                          params.particle_mass, params.type);
-                }
-            }
-        }
+    for (Section &shape : single_particles) {
+        ParticleGenerator::generateParticle(parseShapeParams(shape, false, third_dim), particles, third_dim);
+    }
+    for (Section &shape : cuboids) {
+        ParticleGenerator::generateCuboid(parseShapeParams(shape, true, third_dim), particles, third_dim);
+    }
+    for (Section &shape : ellipsoids) {
+        ParticleGenerator::generateEllipsoid(parseShapeParams(shape, true, third_dim), particles, third_dim);
     }
 
     particles.shrinkToFit();
-
-    spdlog::debug("Ellipsoid generated at ({}, {}, {}) with dimensions {}x{}x{}, h={}, m={}, type={}",
-                  params.anchor_point.at(0), params.anchor_point.at(1), params.anchor_point.at(2), a, b, c,
-                  params.spacing, params.particle_mass, params.type);
 }
 }  // namespace io

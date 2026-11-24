@@ -30,9 +30,6 @@ struct SimulationParameters {
     std::string input_file;
 
     /**
-     * Path to the input_file with initial particle settings
-     */
-    /**
      * Base name of the output file (if an output file is used). The basename is prefixed to all files generated.
      * eg. <output_file_basename>_0003.vtu
      */
@@ -100,12 +97,10 @@ struct SimulationParameters {
     std::array<double, 3> domain_dimensions = {180, 90, 6};
 
     /**
-     * Boundary condition for each spatial boundary.
-     * Index 0 and 1 are for the x dimension
-     * Index 2 and 3 are for the y dimension
-     * Index 4 and 5 are for the z dimension and remain unused if third_dim is false
+     * Boundary condition for each spatial boundary (+x, -x), (+y, -y), (+z, -z)
+     * z is only used / set if third_dim = true
      */
-    std::array<BoundaryCondition, 6> boundary_conditions{};
+    std::array<std::array<BoundaryCondition, 2>, 3> boundary_conditions{};
 
     /**
      * force that should be applied to two particles in the simulation
@@ -120,5 +115,5 @@ struct SimulationParameters {
     /**
      * epsilon parameter for the lennard jones force
      */
-    double epsilon = 3;
+    double epsilon = 5;
 };
