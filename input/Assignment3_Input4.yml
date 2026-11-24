@@ -2,6 +2,7 @@ simulation:
   delta_t: 0.00005
   end_t: 10
   out_interval: 200
+  basename: MD_Assignment3_Disc
   3d: false
   domain:
     anchor_point: [ 0, 0, 0 ]

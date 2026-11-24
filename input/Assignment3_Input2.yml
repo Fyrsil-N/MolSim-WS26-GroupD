@@ -2,6 +2,7 @@ simulation:
   delta_t: 0.0005
   end_t: 20
   out_interval: 50
+  basename: MD_Assignment3_Collision
   3d: false
   domain:
     anchor_point: [ 0, 0, 0 ]

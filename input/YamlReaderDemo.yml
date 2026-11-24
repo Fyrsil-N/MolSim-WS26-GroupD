@@ -1,8 +1,8 @@
 simulation:
   delta_t: 0.0002
   end_t: 5
-  out_interval: 50
-  basename: "Simulation_Output"
+  out_interval: 50 # optional (default = 10)
+  basename: "Simulation_Output" # optional (default = MD_output)
   3d: true
   domain:
     anchor_point: [ -40, -80, -120 ]
@@ -13,7 +13,7 @@ simulation:
       # +y, -y
       y: [ outflow, reflecting ]
       # +z, -z
-      z: [ outflow, outflow ]
+      z: [ outflow, outflow ] # only allowed if 3d = true
   pair_force:
     Lennard-Jones:
       sigma: 1
@@ -23,7 +23,7 @@ simulation:
 # Can also be:
 # pair_force: Gravity
 
-scene:
+scene: # at least one shape is required (so the simulation isn't empty and makes sense to run)
   cuboids:
     - anchor_point: [ -5, -5, -5 ]
       dimensions: [ 10, 10, 10 ]
