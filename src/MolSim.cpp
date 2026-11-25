@@ -91,8 +91,11 @@ int main(int argc, char *argv[]) {
         if (params->r_cutoff > 0) {
             container = std::make_unique<LinkedCellContainer>(params->domain_anchor, params->domain_dimensions,
                                                               params->third_dim, params->r_cutoff);
+            spdlog::info(
+                "Using the faster linked cell algorithm. To change set the cutoff radius to a negative value.");
         } else {
             container = std::make_unique<DirectSumContainer>();
+            spdlog::info("Using the faster linked cell algorithm since no valid cutoff radius has been set.");
         }
 
         input_reader->readInParticles(*container, params->third_dim);

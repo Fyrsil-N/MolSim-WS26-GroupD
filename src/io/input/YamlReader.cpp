@@ -240,7 +240,6 @@ void parsePairwiseForce(Section &simulation, SimulationParameters &params) {
     Section force_section = simulation.section("pair_force");
     Section lennard_jones_section = force_section.section("Lennard-Jones");
 
-    // @TODO validation of input
     params.pair_force = LENNARD_JONES;
     params.sigma = lennard_jones_section.required<double>("sigma");
     params.epsilon = lennard_jones_section.required<double>("epsilon");
@@ -248,6 +247,21 @@ void parsePairwiseForce(Section &simulation, SimulationParameters &params) {
 
     lennard_jones_section.finish();
     force_section.finish();
+
+    // value validation
+    if (params.sigma <= 0) {
+        lennard_jones_section.fail("Sigma is expected to be a strictly positive number");
+    }
+    if (params.epsilon <= 0) {
+        lennard_jones_section.fail("Epsilon is expected to be a strictly positive number");
+    }
+    if (params.r_cutoff <= 0) {
+        spdlog::info("The cutoff radius is disabled.");
+    }
+    if (params.r_cutoff <= 2 * params.sigma) {
+        spdlog::warn(
+            "The cutoff radius is set to a very small value so Lennard Jones Forces will probably not act as intended");
+    }
 }
 
 /**
@@ -315,7 +329,6 @@ void parseDomainParams(Section &domain, SimulationParameters &params) {
 ShapeParameters parseShapeParams(Section &shape, const bool multiple_particles, const bool third_dim) {
     ShapeParameters params;
 
-    // @TODO validation
     params.anchor_point = shape.required<std::array<double, 3>>("anchor_point");
     params.velocity = shape.required<std::array<double, 3>>("velocity");
     params.particle_mass = shape.required<double>("mass");
@@ -323,7 +336,6 @@ ShapeParameters parseShapeParams(Section &shape, const bool multiple_particles, 
 
     // particle dims and spacing only make sense for cuboids or ellipsoids etc.
     if (multiple_particles) {
-        // @TODO validation
         params.particle_dims = shape.required<std::array<std::size_t, 3>>("dimensions");
         params.spacing = shape.required<double>("spacing");
     }
@@ -335,6 +347,14 @@ ShapeParameters parseShapeParams(Section &shape, const bool multiple_particles, 
     }
 
     shape.finish();
+
+    // value validation
+    if (params.particle_mass <= 0) {
+        shape.fail("mass is expected to be a strictly positive number");
+    }
+    if (params.spacing <= 0) {
+        shape.fail("spacing is expected to be a strictly positive number");
+    }
 
     return params;
 }
@@ -354,7 +374,6 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
     Section root = Section(filename);
     Section simulation = root.section("simulation");
 
-    // @TODO value validation
     params.output_file_basename = simulation.optional<std::string>("basename", "MD_output");
     params.delta_t = simulation.required<double>("delta_t");
     params.t_end = simulation.required<double>("end_t");
@@ -368,6 +387,16 @@ void YamlReader::readInSimulation(SimulationParameters &params) {
 
     simulation.finish();
 
+    // value validation
+    if (params.delta_t <= 0) {
+        simulation.fail("delta_t is expected to be a strictly positive number");
+    }
+    if (params.t_end <= 0) {
+        simulation.fail("end_t is expected to be a strictly positive number");
+    }
+    if (params.output_interval <= 0) {
+        simulation.fail("out_interval is expected to be a strictly positive number");
+    }
     if (params.delta_t > params.t_end) {
         spdlog::warn("delta_t ({}) is larger than t_end ({})", params.delta_t, params.t_end);
     }
