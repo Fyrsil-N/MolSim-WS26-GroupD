@@ -38,27 +38,23 @@ std::vector<std::unique_ptr<io::OutputWriter>> setupOutputWriters(const Simulati
 
     output_writers.push_back(std::make_unique<io::ProgressWriter>(static_cast<int>(params.t_end / params.delta_t)));
 
-    if (!std::filesystem::exists("../output")) {
-        std::filesystem::create_directory("../output");
-    }
+    std::filesystem::create_directories(params.output_dir);
 
-    std::filesystem::path out_dir("../output/out_0");
+    std::filesystem::path out_dir = params.output_dir / ("out_0");
     for (int i = 0; std::filesystem::exists(out_dir); ++i) {
-        out_dir = std::filesystem::path("../output/out_" + std::to_string(i));
+        out_dir = params.output_dir / ("out_" + std::to_string(i));
     }
-
     std::filesystem::create_directory(out_dir);
-    spdlog::info("Outputting to {}.", out_dir.string());
+    spdlog::info("Outputting to {}.", std::filesystem::absolute(out_dir).string());
 
+    const std::string out_name = (out_dir / params.output_file_basename).string();
     if (params.vtk_output) {
 #ifdef ENABLE_VTK_OUTPUT
-        std::string out_name(out_dir.string() + "/" + params.output_file_basename);
         output_writers.push_back(std::make_unique<io::VTKWriter>(params.output_interval, out_name));
 #else  // safeguard, should never be reached (cli::parseArguments already rejects -v)
         throw std::logic_error("invalid flag -v set: VTK output is not available in this build");
 #endif
     } else {
-        std::string out_name(out_dir.string() + "/" + params.output_file_basename);
         output_writers.push_back(std::make_unique<io::XYZWriter>(params.output_interval, out_name));
     }
 

@@ -23,6 +23,7 @@ void printHelp(const char *program_name) {
               << "\n"
               << "Options:\n"
               << "  -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)\n"
+              << "  -o, --output-dir <dir>         directory for the output files (default: ../output)\n"
 #ifdef ENABLE_VTK_OUTPUT
               << "  -v, --vtk                      output simulation files using vtk (default: xyz)\n"
 #else
@@ -65,6 +66,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
 
     const option long_options[] = {
         {"log-level", required_argument, nullptr, 'l'},
+        {"output-dir", required_argument, nullptr, 'o'},
         {"vtk", no_argument, nullptr, 'v'},
         {"serial", no_argument, nullptr, 's'},
         {"benchmark", no_argument, nullptr, 'b'},
@@ -75,7 +77,7 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
     opterr = 0;
 
     int opt = 0;
-    while ((opt = getopt_long(argc, argv, ":l:vsbh", std::data(long_options), nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":l:o:vsbh", std::data(long_options), nullptr)) != -1) {
         switch (opt) {
             case 'l': {
                 const auto value = parseLogLevel(optarg);
@@ -84,6 +86,13 @@ std::optional<SimulationParameters> parseArguments(int argc, char *argv[]) {
                                 "', expected one of [trace, debug, info, warn, err, critical, off]");
                 }
                 params.log_level = *value;
+                break;
+            }
+            case 'o': {
+                if (std::string_view(optarg).empty()) {
+                    return fail("output directory must not be empty");
+                }
+                params.output_dir = optarg;
                 break;
             }
             case 'v': {

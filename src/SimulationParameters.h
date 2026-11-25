@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 
 #include <array>
+#include <filesystem>
 #include <string>
 
 /**
@@ -34,6 +35,11 @@ struct SimulationParameters {
      * eg. <output_file_basename>_0003.vtu
      */
     std::string output_file_basename = "MD_output";
+
+    /**
+     * Root directory for all outputs. For each run we then create a out_<i> subdirectory.
+     */
+    std::filesystem::path output_dir = "../output";
 
     /**
      * VTK output flag (xyz if false)

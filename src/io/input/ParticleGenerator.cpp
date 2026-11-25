@@ -12,7 +12,8 @@
 #include "utils/MaxwellBoltzmannDistribution.h"
 
 namespace io {
-void ParticleGenerator::generateCuboid(const ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
+void ParticleGenerator::generateCuboid(const ShapeParameters &params, ParticleContainer &particles,
+                                       const bool third_dim) {
     particles.reserve(particles.size() +
                       params.particle_dims.at(0) * params.particle_dims.at(1) * params.particle_dims.at(2));
     for (size_t x = 0; x < params.particle_dims.at(0); ++x) {
@@ -41,7 +42,8 @@ void ParticleGenerator::generateParticle(const ShapeParameters &params, Particle
                           params.particle_mass, params.type);
 }
 
-void ParticleGenerator::generateEllipsoid(const ShapeParameters &params, ParticleContainer &particles, const bool third_dim) {
+void ParticleGenerator::generateEllipsoid(const ShapeParameters &params, ParticleContainer &particles,
+                                          const bool third_dim) {
     auto a = static_cast<long long>(params.particle_dims.at(0));
     auto b = static_cast<long long>(params.particle_dims.at(1));
     auto c = static_cast<long long>(params.particle_dims.at(2));

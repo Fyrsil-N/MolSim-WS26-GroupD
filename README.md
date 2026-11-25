@@ -53,7 +53,7 @@ instantiation are separated and the testing framework can make direct use of all
     * Writers need to implement an `onStep` method called at every iteration and may override `onEnd` for final
       summaries.
     * Writers can only read from the `ParticleContainer` but never write to it.
-    * Output is written to an output folder in the project root.
+    * Output is written to a new `out_<i>` folder inside the output directory which can be changed using the cli.
 * To allow for different input methods, we define the interface `InputReader`.
     * Readers have to implement the methods `readInParticles` and `readInSimulation`, which fill provided
       `ParticleContainer`s and `SimulationParameter`s.
@@ -159,6 +159,7 @@ Run the final executable inside `build/`.
 ```bash
 ./MolSim ../input/Assignment3_Input2.yml -v
 ./MolSim ../input/Assignment3_Input2.yml -v -s # is calculated serially
+./MolSim ../input/Assignment3_Input2.yml -o ../output/sheet3 # writes to ../output/sheet3/out_<i>
 ```
 
 Parameters and arguments can also be checked via the `-h` or `--help` option.
@@ -168,6 +169,7 @@ Usage: ./MolSim [options] <input_file>
 
 Options:
   -l, --log-level <level>        trace|debug|info|warn|err|critical|off (default: info)
+  -o, --output-dir <dir>         directory for the output files (default: ../output)
   -v, --vtk                      output simulation files using vtk (default: xyz)
   -s, --serial                   calculate the forces serially (currently does nothing, forces are always calculated serially)
   -b, --benchmark                run a benchmark (disables all output and logs)
@@ -205,7 +207,7 @@ ctest --output-on-failure #Output anything outputted by the test program if the 
 
 Performance of the simulation can be measured by setting the `-b` flag during execution. This will set the log level to
 `off` and disable all OutputWriters except the `PerformanceWriter` which is used for the actual measurements. Careful
-this also means using the `-l` and `-v` flags in combination has **no** effect.
+this also means using the `-l`, `-v` and `-o` flags in combination has **no** effect.
 
 Benchmarks should only be run on a release build.
 
