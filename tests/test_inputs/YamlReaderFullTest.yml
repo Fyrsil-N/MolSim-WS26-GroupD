@@ -1,0 +1,42 @@
+# Input for tests/YamlReaderTest.cpp. DON'T CHANGE!
+simulation:
+  basename: FullTest
+  delta_t: 0.0005
+  end_t: 1.6
+  out_interval: 1000
+  3d: true
+  domain:
+    anchor_point: [ 0, -500, 0.001 ]
+    dimensions: [ 180, 90, 31 ]
+    boundaries:
+      x: [ reflecting, reflecting ]
+      y: [ outflow, reflecting ]
+      z: [ outflow, outflow ]
+  pair_force:
+    Lennard-Jones:
+      sigma: 1.2
+      epsilon: 2.5
+      cutoff: 3.0
+
+scene:
+  cuboids:
+    - anchor_point: [ 3, -2, 0.5 ]
+      dimensions: [ 3, 2, 4 ]
+      velocity: [ 1.5, -0.5, 2.0 ]
+      spacing: 1.1225
+      mass: 2.5
+      type: 3
+
+  particles:
+    - anchor_point: [ 20, 0, 0 ]
+      velocity: [ -100, 0, 0 ]
+      mass: 1
+      type: 1
+
+  ellipsoids:
+    - anchor_point: [ 0, -80, 0 ]
+      dimensions: [ 3, 4, 3 ]
+      velocity: [ 0, 100, 0 ]
+      spacing: 1.1225
+      mass: 1
+      type: 4

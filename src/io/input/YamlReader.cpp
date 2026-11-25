@@ -257,8 +257,7 @@ void parsePairwiseForce(Section &simulation, SimulationParameters &params) {
     }
     if (params.r_cutoff <= 0) {
         spdlog::info("The cutoff radius is disabled.");
-    }
-    if (params.r_cutoff <= 2 * params.sigma) {
+    } else if (params.r_cutoff <= 2 * params.sigma) {
         spdlog::warn(
             "The cutoff radius is set to a very small value so Lennard Jones Forces will probably not act as intended");
     }

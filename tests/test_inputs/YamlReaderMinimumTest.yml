@@ -1,0 +1,21 @@
+# Input for tests/YamlReaderTest.cpp. DON'T CHANGE!
+simulation:
+  delta_t: 0.0005
+  end_t: 1.6
+  domain:
+    anchor_point: [ 0, -500, 0.001 ]
+    dimensions: [ 180, 90, 31 ]
+    boundaries:
+      x: [ reflecting, reflecting ]
+      y: [ outflow, reflecting ]
+  pair_force:
+    Lennard-Jones:
+      sigma: 1
+      epsilon: 5
+
+scene:
+  particles:
+    - anchor_point: [ 20, 0, 0 ]
+      velocity: [ -100, 0, 0 ]
+      mass: 1
+      type: 1
